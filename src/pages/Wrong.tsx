@@ -76,6 +76,7 @@ const WrongNoteListHeader = styled.div`
   align-items: center;
 `;
 
+// `/wrong-answers/all?page=${0}&size=${5}&sort=createdAt,desc`
 const WrongNoteListHeaderColumn = styled.span`
   padding: ${({ theme }) => theme.spacing.spacing4};
   font-size: ${({ theme }) => theme.typography.label2Regular.fontSize};
@@ -88,13 +89,13 @@ function Wrong() {
     queryKey: ['wrongNoteSet', 'wrongNoteSetId'],
     queryFn: async () => {
       const res = await api.get<WrongNoteSetResponse>(
-        `/wrong-answers/all?page=${0}&size=${5}&sort=createdAt,desc`,
+        `/wrong-answers/all`,
       );
       return res.data;
     },
   });
 
-  console.log();
+  console.log(data);
   // 로딩
   if (isPending) return <h1>Loading...</h1>;
   // 에러

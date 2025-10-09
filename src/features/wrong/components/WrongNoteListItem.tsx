@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { BookOpen } from 'lucide-react';
 // import type { WrongNoteSetResponse } from '@/features/wrong/types/wrongNote';
-
+import { useNavigate } from 'react-router-dom';
 const WrongNoteListItemWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.spacing4};
   border-top: 1px solid ${({ theme }) => theme.colors.gray.gray5};
@@ -87,6 +87,12 @@ interface WrongNoteSet {
 
 function WrongNoteListItem({ item }: WrongNoteListItemProps) {
   // TODO: 여기에 몇번 오답문제지인지도 넘겨줘서 해야함
+  const navigate = useNavigate();
+
+  const handleReviewNavigate = () => {
+    navigate(`/solve/${item.questionSetId}?isReviewing=true`);
+  };
+
   return (
     <WrongNoteListItemWrapper>
       <WrongNoteInfoWrapper>
@@ -101,7 +107,7 @@ function WrongNoteListItem({ item }: WrongNoteListItemProps) {
       <WrongCount>{item.incorrectCount}개</WrongCount>
       <DifficultyLevel>{item.difficulty}</DifficultyLevel>
       <CategoryType>{'수학'}</CategoryType>
-      <RetryBtn>복습하기</RetryBtn>
+      <RetryBtn onClick={handleReviewNavigate}>복습하기</RetryBtn>
     </WrongNoteListItemWrapper>
   );
 }

@@ -61,6 +61,10 @@ const SearchBar = styled.input`
   border: 1px solid ${({ theme }) => theme.colors.gray.gray4};
   border-radius: ${({ theme }) => theme.radius.radius2};
   background-color: ${({ theme }) => theme.colors.gray.gray0};
+  font-size: ${({ theme }) => theme.typography.label1Regular.fontSize};
+  font-weight: ${({ theme }) => theme.typography.label1Regular.fontWeight};
+  line-height: ${({ theme }) => theme.typography.label1Regular.lineHeight};
+  padding: ${({ theme }) => theme.spacing.spacing1};
 `;
 
 // 오답노트 리스트 부분
@@ -105,13 +109,12 @@ function Wrong() {
       clearTimeout(timerId);
     };
   }, [searchTerm]);
-  
-  const normalize = (str: string) =>
-  str.toLowerCase().normalize("NFC").replace(/\s+/g, "");
+
+  const normalize = (str: string) => str.toLowerCase().normalize('NFC').replace(/\s+/g, '');
 
   const filteredQuestionSets = data?.filter((item) =>
-  normalize(item.questionSetTitle).includes(normalize(debouncedSearchTerm))
-);
+    normalize(item.questionSetTitle).includes(normalize(debouncedSearchTerm)),
+  );
 
   // 로딩
   if (isPending) return <h1>Loading...</h1>;
@@ -129,7 +132,9 @@ function Wrong() {
           문제집별로 틀린 문제를 분석하고 완벽히 이해할 때까지 학습하세요
         </WrongPageDescription>
         <SearchBarWrapper>
-          <SearchBarDescription>{filteredQuestionSets?.length}개의 오답이 검색되었습니다</SearchBarDescription>
+          <SearchBarDescription>
+            {filteredQuestionSets?.length}개의 오답이 검색되었습니다
+          </SearchBarDescription>
           <SearchBar
             placeholder="오답노트 제목으로 검색"
             value={searchTerm}

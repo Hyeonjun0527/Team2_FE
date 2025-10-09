@@ -88,9 +88,7 @@ function Wrong() {
   const { isPending, error, data } = useQuery({
     queryKey: ['wrongNoteSet', 'wrongNoteSetId'],
     queryFn: async () => {
-      const res = await api.get<WrongNoteSetResponse>(
-        `/wrong-answers/all`,
-      );
+      const res = await api.get<WrongNoteSetResponse>(`/wrong-answers/all`);
       return res.data;
     },
   });

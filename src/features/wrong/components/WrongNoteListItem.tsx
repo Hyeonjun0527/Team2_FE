@@ -70,7 +70,7 @@ const RetryBtn = styled.button`
   padding: ${({ theme }) => theme.spacing.spacing2} ${({ theme }) => theme.spacing.spacing5};
   color: ${({ theme }) => theme.colors.gray.gray0};
   border-radius: ${({ theme }) => theme.radius.radius2};
-`
+`;
 
 interface WrongNoteListItemProps {
   item: WrongNoteSet;

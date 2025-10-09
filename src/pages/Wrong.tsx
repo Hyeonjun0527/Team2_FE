@@ -5,6 +5,7 @@ import WrongNoteListItem from '@/features/wrong/components/WrongNoteListItem';
 import api from '@/shared/api/axiosClient';
 import { useQuery } from '@tanstack/react-query';
 import type { WrongNoteSetResponse } from '@/features/wrong/types/wrongNote';
+import { useState, useEffect } from 'react';
 // 제목 설명
 const WrongWrapper = styled.div`
   width: 100%;
@@ -54,7 +55,7 @@ const SearchBarDescription = styled.p`
   color: ${({ theme }) => theme.colors.gray.gray7};
 `;
 
-const SearchBar = styled.div`
+const SearchBar = styled.input`
   width: 300px;
   height: 30px;
   border: 1px solid ${({ theme }) => theme.colors.gray.gray4};
@@ -76,7 +77,6 @@ const WrongNoteListHeader = styled.div`
   align-items: center;
 `;
 
-// `/wrong-answers/all?page=${0}&size=${5}&sort=createdAt,desc`
 const WrongNoteListHeaderColumn = styled.span`
   padding: ${({ theme }) => theme.spacing.spacing4};
   font-size: ${({ theme }) => theme.typography.label2Regular.fontSize};
@@ -93,7 +93,26 @@ function Wrong() {
     },
   });
 
-  console.log(data);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
+  
+  const normalize = (str: string) =>
+  str.toLowerCase().normalize("NFC").replace(/\s+/g, "");
+
+  const filteredQuestionSets = data?.filter((item) =>
+  normalize(item.questionSetTitle).includes(normalize(debouncedSearchTerm))
+);
+
   // 로딩
   if (isPending) return <h1>Loading...</h1>;
   // 에러
@@ -110,8 +129,12 @@ function Wrong() {
           문제집별로 틀린 문제를 분석하고 완벽히 이해할 때까지 학습하세요
         </WrongPageDescription>
         <SearchBarWrapper>
-          <SearchBarDescription>{data.length}개의 오답이 검색되었습니다</SearchBarDescription>
-          <SearchBar />
+          <SearchBarDescription>{filteredQuestionSets?.length}개의 오답이 검색되었습니다</SearchBarDescription>
+          <SearchBar
+            placeholder="오답노트 제목으로 검색"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </SearchBarWrapper>
         <WrongNoteList>
           <WrongNoteListHeader>
@@ -121,9 +144,7 @@ function Wrong() {
             <WrongNoteListHeaderColumn>카테고리</WrongNoteListHeaderColumn>
             <WrongNoteListHeaderColumn>작업</WrongNoteListHeaderColumn>
           </WrongNoteListHeader>
-          {/* 여기에 넣어야한다 */}
-          {/* <WrongNoteListItem data={data}></WrongNoteListItem> */}
-          {data.map((item) => (
+          {filteredQuestionSets?.map((item) => (
             <WrongNoteListItem key={item.questionSetId} item={item} />
           ))}
         </WrongNoteList>

@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-import PageLayout from '@/shared/components/Layout/PageLayout';
 import WrongNoteListItem from '@/features/wrong/components/WrongNoteListItem';
 
 import api from '@/shared/api/axiosClient';
@@ -12,15 +11,20 @@ const WrongWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  width: 100%;
+  background-color: ${({ theme }) => theme.colors.background.background};
+  height: calc(100dvh - 76px);
+  overflow-y: auto;
   box-sizing: border-box;
+  justify-content: flex-start;
 `;
+
 const ContentWrapper = styled.div`
-  width: 100%;
-  max-width: 1000px;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 1000px;
 `;
+
 const WrongPageTitleWrapper = styled.div`
   display: flex;
   align-items: center;
@@ -66,7 +70,15 @@ const SearchBar = styled.input`
   font-size: ${({ theme }) => theme.typography.label1Regular.fontSize};
   font-weight: ${({ theme }) => theme.typography.label1Regular.fontWeight};
   line-height: ${({ theme }) => theme.typography.label1Regular.lineHeight};
-  padding: ${({ theme }) => theme.spacing.spacing1};
+  padding: ${({ theme }) => theme.spacing.spacing2};
+
+  border: 1px solid ${({ theme }) => theme.colors.gray.gray3};
+  border-radius: ${({ theme }) => theme.radius.radius1};
+  &:focus {
+    outline: none;
+    border: 1px solid ${({ theme }) => theme.colors.semantic.primary};
+    border-radius: ${({ theme }) => theme.radius.radius2};
+  }
 `;
 
 // 오답노트 리스트 부분
@@ -75,19 +87,23 @@ const WrongNoteList = styled.div`
   flex-direction: column;
   border: 1px solid ${({ theme }) => theme.colors.gray.gray5};
   border-radius: ${({ theme }) => theme.radius.radius2};
+  overflow: hidden;
 `;
 
 const WrongNoteListHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
+  background-color: ${({ theme }) => theme.colors.gray.gray1};
+  /* align-items: center; */
+  padding: ${({ theme }) => theme.spacing.spacing3} ${({ theme }) => theme.spacing.spacing4};
+  /* border-bottom: 1px solid ${({ theme }) => theme.colors.gray.gray4}; */
 `;
 
 const WrongNoteListHeaderColumn = styled.span`
-  padding: ${({ theme }) => theme.spacing.spacing4};
   font-size: ${({ theme }) => theme.typography.label2Regular.fontSize};
   font-weight: ${({ theme }) => theme.typography.label2Regular.fontWeight};
   line-height: ${({ theme }) => theme.typography.label2Regular.lineHeight};
+  color: ${({ theme }) => theme.colors.gray.gray9};
 `;
 
 function Wrong() {
@@ -124,40 +140,40 @@ function Wrong() {
   if (error) return <h1>Error</h1>;
 
   return (
-    <PageLayout>
-      <WrongWrapper>
-        <ContentWrapper>
-          <WrongPageTitleWrapper>
-            <WrongPageTitle>오답노트</WrongPageTitle>
-          </WrongPageTitleWrapper>
-          <WrongPageDescription>
-            문제집별로 틀린 문제를 분석하고 완벽히 이해할 때까지 학습하세요
-          </WrongPageDescription>
-          <SearchBarWrapper>
-            <SearchBarDescription>
-              {filteredQuestionSets?.length}개의 오답이 검색되었습니다
-            </SearchBarDescription>
-            <SearchBar
-              placeholder="오답노트 제목으로 검색"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </SearchBarWrapper>
-          <WrongNoteList>
-            <WrongNoteListHeader>
-              <WrongNoteListHeaderColumn>문제집</WrongNoteListHeaderColumn>
-              <WrongNoteListHeaderColumn>오답 수</WrongNoteListHeaderColumn>
-              <WrongNoteListHeaderColumn>난이도</WrongNoteListHeaderColumn>
-              <WrongNoteListHeaderColumn>카테고리</WrongNoteListHeaderColumn>
-              <WrongNoteListHeaderColumn>작업</WrongNoteListHeaderColumn>
-            </WrongNoteListHeader>
-            {filteredQuestionSets?.map((item) => (
-              <WrongNoteListItem key={item.questionSetId} item={item} />
-            ))}
-          </WrongNoteList>
-        </ContentWrapper>
-      </WrongWrapper>
-    </PageLayout>
+    // <PageLayout>
+    <WrongWrapper>
+      <ContentWrapper>
+        <WrongPageTitleWrapper>
+          <WrongPageTitle>오답노트</WrongPageTitle>
+        </WrongPageTitleWrapper>
+        <WrongPageDescription>
+          문제집별로 틀린 문제를 분석하고 완벽히 이해할 때까지 학습하세요
+        </WrongPageDescription>
+        <SearchBarWrapper>
+          <SearchBarDescription>
+            {filteredQuestionSets?.length}개의 오답이 검색되었습니다
+          </SearchBarDescription>
+          <SearchBar
+            placeholder="오답노트 제목으로 검색"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </SearchBarWrapper>
+        <WrongNoteList>
+          <WrongNoteListHeader>
+            <WrongNoteListHeaderColumn>문제집</WrongNoteListHeaderColumn>
+            <WrongNoteListHeaderColumn>오답 수</WrongNoteListHeaderColumn>
+            <WrongNoteListHeaderColumn>난이도</WrongNoteListHeaderColumn>
+            <WrongNoteListHeaderColumn>카테고리</WrongNoteListHeaderColumn>
+            <WrongNoteListHeaderColumn>작업</WrongNoteListHeaderColumn>
+          </WrongNoteListHeader>
+          {filteredQuestionSets?.map((item) => (
+            <WrongNoteListItem key={item.questionSetId} item={item} />
+          ))}
+        </WrongNoteList>
+      </ContentWrapper>
+    </WrongWrapper>
+    // </PageLayout>
   );
 }
 

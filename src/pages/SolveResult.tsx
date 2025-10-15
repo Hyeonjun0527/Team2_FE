@@ -123,6 +123,7 @@ function SolveResult({ questionLength, solvedCheck, isReviewing }: SolveResultPr
   const [score, setScore] = useState(0);
   const submitMarking = (data: MarkingRequest[]) => {
     const url = isReviewing ? '/marking?isReviewing=true' : '/marking';
+    // TODO:
     return api.post(url, data);
   };
   const mutation = useMutation({
@@ -186,7 +187,7 @@ function SolveResult({ questionLength, solvedCheck, isReviewing }: SolveResultPr
             <Link to="/wrong">
               <ReviewWrongAnswersButton>오답노트 확인</ReviewWrongAnswersButton>
             </Link>
-            <Link to="/create">
+            <Link to="/">
               <RetryButton>다시 생성하기</RetryButton>
             </Link>
             <Link to="/dashboard">

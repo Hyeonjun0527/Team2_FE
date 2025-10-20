@@ -1,4 +1,5 @@
 export type DifficultyType = 'EASY' | 'MEDIUM' | 'HARD';
+
 export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'SHORT_ANSWER';
 
 export interface MyQuestionSetsResponse {

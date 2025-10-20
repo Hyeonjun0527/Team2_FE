@@ -304,10 +304,7 @@ function SideBar({ isOpen, closeSideBar, selectedMenu, changeMenu, esClose }: Si
             </SideBarUserInfoAvatar>
             <SideBarUserInfoTextWrapper>
               <SideBarUserInfoName>{userInfo?.name || '로그인 필요'}</SideBarUserInfoName>
-              {/* 이 부분 api에 이메일까지 오면 교체만 하면됨 */}
-              <SideBarUserInfoEmail>
-                {userInfo?.name + '@kakao.com' || '로그인 필요'}
-              </SideBarUserInfoEmail>
+              <SideBarUserInfoEmail>{userInfo?.email || '로그인 필요'}</SideBarUserInfoEmail>
             </SideBarUserInfoTextWrapper>
           </SideBarUserInfoAvatarTextWrapper>
           <Settings

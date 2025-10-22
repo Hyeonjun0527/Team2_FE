@@ -1,10 +1,15 @@
 import PageLayout from '@/shared/components/Layout/PageLayout';
 import styled from '@emotion/styled';
 import { BookOpen, CheckCircle, Target, Flame } from 'lucide-react';
+import CalendarHeatmapCompo from '@/features/dashboard/CalendarHeatmapCompo';
 
 const DashboardWrapper = styled.div`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.spacing5};
+  height: calc(100dvh - 76px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  justify-content: flex-start;
 `;
 
 const DashboardTitle = styled.h1`
@@ -127,6 +132,8 @@ function Dashboard() {
             <DashboardCardDescription>연속 학습일</DashboardCardDescription>
           </DashboardStatCard>
         </DashboardStatCardWrapper>
+        {/* 깃허브 스타일 잔디 */}
+        <CalendarHeatmapCompo />
       </DashboardWrapper>
     </PageLayout>
   );

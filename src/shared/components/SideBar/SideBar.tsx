@@ -12,21 +12,25 @@ import { useState } from 'react';
 
 import { clearToken } from '@/shared/utils/tokenManager';
 import { administratorApi } from '@/shared/api/axiosClient';
+import { useLocation } from 'react-router-dom';
 
 // 사이드바
 const SideBarWrapper = styled.nav<{ isOpen: boolean }>`
-  width: ${({ isOpen }) => (isOpen ? '240px' : '0px')};
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
   height: 100dvh;
   min-height: ${MIN_HEIGHT};
 
   border-right: 1px solid ${({ theme }) => theme.colors.gray.gray4};
   border-bottom: 1px solid ${({ theme }) => theme.colors.gray.gray4};
   display: flex;
-  opacity: ${({ isOpen }) => (isOpen ? '1' : '0')};
   flex-direction: column;
 
-  overflow: hidden;
-  transition: width 0.3s ease-in-out;
+  transform: translateX(${({ isOpen }) => (isOpen ? '0' : '-100%')});
+  z-index: 100;
+  transition: transform 0.4s ease;
 `;
 
 // 사이드바 헤더
@@ -199,15 +203,14 @@ const DropdownItemTxt = styled.span``;
 interface SideBarProps {
   isOpen: boolean;
   closeSideBar: () => void;
-  selectedMenu: string;
-  changeMenu: (menu: string) => void;
   esClose: () => void;
 }
 
-function SideBar({ isOpen, closeSideBar, selectedMenu, changeMenu, esClose }: SideBarProps) {
+function SideBar({ isOpen, closeSideBar, esClose }: SideBarProps) {
   const { userInfo } = useAuth();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
@@ -221,6 +224,17 @@ function SideBar({ isOpen, closeSideBar, selectedMenu, changeMenu, esClose }: Si
       console.error('로그아웃 실패:', error);
     }
   };
+
+  const path = location.pathname;
+
+  let selectedMenu = '페이지';
+
+  if (path.startsWith('/dashboard')) selectedMenu = '대시보드';
+  else if (path.startsWith('/create')) selectedMenu = '문제집 생성';
+  else if (path.startsWith('/solve')) selectedMenu = '문제 풀이';
+  else if (path.startsWith('/library')) selectedMenu = '나의 문제집';
+  else if (path.startsWith('/wrong')) selectedMenu = '오답노트';
+  else if (path === '/') selectedMenu = '문제집 생성';
 
   return (
     <SideBarWrapper isOpen={isOpen}>
@@ -243,39 +257,27 @@ function SideBar({ isOpen, closeSideBar, selectedMenu, changeMenu, esClose }: Si
       <SideBarMain>
         <SideBarNav>
           <NavLink to={ROUTES.DASHBOARD}>
-            <SideBarNavItem
-              active={MENUS.DASHBOARD === selectedMenu}
-              onClick={() => changeMenu(MENUS.DASHBOARD)}
-            >
+            <SideBarNavItem active={MENUS.DASHBOARD === selectedMenu}>
               <LayoutDashboard size={14} />
               <SideBarNavTxt>{MENUS.DASHBOARD}</SideBarNavTxt>
             </SideBarNavItem>
           </NavLink>
           <NavLink to={ROUTES.CREATE}>
-            <SideBarNavItem
-              active={MENUS.CREATE === selectedMenu}
-              onClick={() => changeMenu(MENUS.CREATE)}
-            >
+            <SideBarNavItem active={MENUS.CREATE === selectedMenu}>
               <Plus size={14} />
               <SideBarNavTxt>{MENUS.CREATE}</SideBarNavTxt>
             </SideBarNavItem>
           </NavLink>
 
           <NavLink to={ROUTES.LIBRARY}>
-            <SideBarNavItem
-              active={MENUS.LIBRARY === selectedMenu}
-              onClick={() => changeMenu(MENUS.LIBRARY)}
-            >
+            <SideBarNavItem active={MENUS.LIBRARY === selectedMenu}>
               <BookOpen size={14} />
               <SideBarNavTxt>{MENUS.LIBRARY}</SideBarNavTxt>
             </SideBarNavItem>
           </NavLink>
 
           <NavLink to={ROUTES.WRONG}>
-            <SideBarNavItem
-              active={MENUS.WRONG === selectedMenu}
-              onClick={() => changeMenu(MENUS.WRONG)}
-            >
+            <SideBarNavItem active={MENUS.WRONG === selectedMenu}>
               <CircleX size={14} />
               <SideBarNavTxt>{MENUS.WRONG}</SideBarNavTxt>
             </SideBarNavItem>

@@ -13,15 +13,20 @@ const AppLayoutWrapper = styled.div`
   height: 100dvh;
   min-height: ${MIN_HEIGHT};
   display: flex;
-  overflow: auto;
+  overflow: hidden;
 `;
 
-const AppLayoutVertical = styled.div`
-  width: 100%;
+const AppLayoutVertical = styled.div<{ isOpen: boolean }>`
+  width: ${({ isOpen }) => (isOpen ? 'calc(100dvw - 240px)' : '100dvw')};
   display: flex;
   flex-direction: column;
   min-height: ${MIN_HEIGHT};
   border-bottom: 1px solid ${({ theme }) => theme.colors.gray.gray4};
+
+  transform: ${({ isOpen }) => (isOpen ? 'translateX(240px)' : 'translateX(0)')};
+  transition:
+    transform 0.4s ease,
+    width 0.4s ease;
 `;
 
 const Main = styled.div`
@@ -33,7 +38,6 @@ const Main = styled.div`
 function AppLayout() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState<boolean>(true);
-  const [selectedMenu, setSelectedMenu] = useState<string>('문제집 생성'); // 현재 페이지 저장 state
   const [questionSetReady, setQuestionSetReady] = useState<boolean>(false); // 문제 생성이 완료되었는지 state
   const [questionSetId, setQuestionSetId] = useState<number>(0); // 문제 조회할때 보낼 state
 
@@ -43,9 +47,6 @@ function AppLayout() {
   // wrapper 함수들
   const openSideBar = () => setIsOpen(true); // LSB 여는 함수
   const closeSideBar = () => setIsOpen(false); // LSB 닫는 함수
-  const changeMenu = (menu: string) => {
-    setSelectedMenu(menu); // 현재 페이지 text를 바꾸는 함수
-  };
   const handleNavigate = useCallback(
     (path: string) => {
       navigate(path);
@@ -100,14 +101,8 @@ function AppLayout() {
 
   return (
     <AppLayoutWrapper>
-      <SideBar
-        isOpen={isOpen}
-        closeSideBar={closeSideBar}
-        selectedMenu={selectedMenu}
-        changeMenu={changeMenu}
-        esClose={esClose}
-      />
-      <AppLayoutVertical>
+      <SideBar isOpen={isOpen} closeSideBar={closeSideBar} esClose={esClose} />
+      <AppLayoutVertical isOpen={isOpen}>
         <PageHeader isOpen={isOpen} openSideBar={openSideBar} />
         <Main>
           <Outlet

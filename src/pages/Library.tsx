@@ -23,7 +23,7 @@ const Container = styled.div`
   align-items: center;
   padding: 20px;
   background-color: ${({ theme }) => theme.colors.background.background};
-  height: calc(100dvh - 76px);
+  height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
   justify-content: flex-start;
@@ -411,9 +411,9 @@ const Library = () => {
                   <ListCell>
                     {new Intl.DateTimeFormat('sv-SE').format(new Date(item.createdAt))}
                   </ListCell>
-                  <ListCell>{TYPE_MAP[item.questionType] ?? '알 수 없음'}</ListCell>
+                  <ListCell>{TYPE_MAP[item.questionType] ?? '생성 실패'}</ListCell>
                   <StatusCell status={item.status}>
-                    {STATUS_MAP[item.status] ?? '알 수 없음'}
+                    {STATUS_MAP[item.status] ?? '생성 실패'}
                   </StatusCell>
                   <ListCell>
                     {item.status === 'COMPLETE' && (

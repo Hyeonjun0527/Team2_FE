@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 const ContextMenuContainer = styled.div<{ x: number; y: number; width?: number; height?: number }>`
   position: fixed;
@@ -37,75 +37,16 @@ const ContextMenuList = styled.ul`
   padding: 4px 0;
 `;
 
-const ContextMenuItem = styled.li<{ disabled?: boolean }>`
-  padding: 8px 16px;
-  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 14px;
-  color: ${({ disabled }) => (disabled ? '#999' : '#333')};
-  transition: background-color 0.1s;
-  user-select: none;
-  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
-  white-space: nowrap;
-
-  &:hover {
-    background-color: ${({ disabled }) => (disabled ? 'transparent' : '#f0f0f0')};
-  }
-
-  &:active {
-    background-color: ${({ disabled }) => (disabled ? 'transparent' : '#e0e0e0')};
-  }
-`;
-
-const ContextMenuDivider = styled.li`
-  height: 1px;
-  background-color: #e0e0e0;
-  margin: 4px 0;
-  padding: 0;
-  cursor: default;
-`;
-
-const MenuIcon = styled.span`
-  font-size: 16px;
-  width: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-interface MenuContent {
-  type: 'content';
-  key: string;
-  title: string;
-  onClick: MenuContentOnClickCallback;
-  disabled?: boolean;
-  icon?: string;
-}
-
-interface MenuDivider {
-  type: 'divider';
-  key: string;
-}
-
-export type MenuItem = MenuContent | MenuDivider;
-
-const isMenuContent = (item: MenuItem): item is MenuContent => item.type === 'content';
-const isMenuDivider = (item: MenuItem): item is MenuDivider => item.type === 'divider';
-
-type MenuContentOnClickCallback = () => void;
-
 function RightClickMenu({
   isVisible,
   setIsVisible,
   point,
-  menuContents,
+  children,
 }: {
   isVisible: boolean;
   setIsVisible: React.Dispatch<React.SetStateAction<boolean>>;
   point: { x: number; y: number };
-  menuContents: MenuItem[];
+  children: React.ReactNode;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [adjustedPosition, setAdjustedPosition] = useState({ x: point.x, y: point.y });
@@ -163,36 +104,10 @@ function RightClickMenu({
     }
   }, [isVisible, setIsVisible]);
 
-  const handleMenuItemClick = useCallback(
-    (callback: MenuContentOnClickCallback) => {
-      callback();
-      setIsVisible(false);
-    },
-    [setIsVisible],
-  );
-
-  const MenuItemComponent = (item: MenuItem) => {
-    if (isMenuContent(item)) {
-      return (
-        <ContextMenuItem
-          onClick={item.disabled ? undefined : () => handleMenuItemClick(item.onClick)}
-          key={item.key}
-          disabled={item.disabled}
-        >
-          <MenuIcon>{item.icon}</MenuIcon>
-          {item.title}
-        </ContextMenuItem>
-      );
-    }
-    if (isMenuDivider(item)) {
-      return <ContextMenuDivider key={item.key} />;
-    }
-  };
-
   if (!isVisible) return null;
   return (
     <ContextMenuContainer ref={menuRef} x={adjustedPosition.x} y={adjustedPosition.y}>
-      <ContextMenuList>{menuContents.map((v) => MenuItemComponent(v))}</ContextMenuList>
+      <ContextMenuList>{children}</ContextMenuList>
     </ContextMenuContainer>
   );
 }

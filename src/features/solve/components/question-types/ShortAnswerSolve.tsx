@@ -87,7 +87,6 @@ const NextButton = styled.button`
   align-items: center;
 `;
 
-
 const ExplanationBox = styled.div`
   background-color: ${({ theme }) => theme.colors.gray.gray1};
   border-radius: ${({ theme }) => theme.radius.radius2};

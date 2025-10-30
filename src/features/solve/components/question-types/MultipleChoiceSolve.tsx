@@ -191,7 +191,7 @@ function MultipleChoiceSolve({
         <OptionList
           style={{
             pointerEvents: isExplanationPage ? 'none' : 'auto',
-            opacity: isExplanationPage ? 0.7 : 1, 
+            opacity: isExplanationPage ? 0.7 : 1,
           }}
         >
           {questions.questions[currentQuestionIndex - 1].options.map((opt, i) => (

@@ -57,7 +57,8 @@ const FolderTag = styled.div<{
   transition: all 0.2s ease-in-out;
   user-select: none;
   font-weight: ${({ isActive }) => (isActive ? '700' : '500')};
-  box-shadow: ${({ isActive }) => (isActive ? '0 2px 8px rgba(0, 0, 0, 0.15)' : 'none')};
+  box-shadow: ${({ isActive }) =>
+    isActive ? '0 2px 8px rgba(0, 0, 0, 0.15)' : 'none'};
 
   &:hover {
     background-color: ${({ folderHoverColor }) => folderHoverColor};
@@ -299,7 +300,8 @@ const FolderList = ({
         deleteFolderMutation.mutate(selectedFolder.id);
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      const errorMessage =
+        error instanceof Error ? error.message : '알 수 없는 오류';
       alert(`폴더 삭제 경고 정보를 가져오는데 실패했습니다: ${errorMessage}`);
     }
   }, [selectedFolder, deleteFolderMutation]);
@@ -406,8 +408,12 @@ const FolderList = ({
               placeholder="폴더 이름"
               autoFocus
             />
-            <FolderActionButton onClick={handleConfirmAddFolder}>✔️</FolderActionButton>
-            <FolderActionButton onClick={handleCancelAddFolder}>❌</FolderActionButton>
+            <FolderActionButton onClick={handleConfirmAddFolder}>
+              ✔️
+            </FolderActionButton>
+            <FolderActionButton onClick={handleCancelAddFolder}>
+              ❌
+            </FolderActionButton>
           </FolderInputContainer>
         ) : (
           <AddFolderButton onClick={handleAddFolder}>➕</AddFolderButton>

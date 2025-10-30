@@ -2,7 +2,9 @@ import styled from '@emotion/styled';
 import { BookOpen } from 'lucide-react';
 // import type { WrongNoteSetResponse } from '@/features/wrong/types/wrongNote';
 import { useNavigate } from 'react-router-dom';
-const WrongNoteListItemWrapper = styled.div`
+import React from 'react'; // 드래그 이벤트 타입을 위해 React import
+
+const WrongNoteListItemWrapper = styled.div<{ isDragging?: boolean }>`
   padding: ${({ theme }) => theme.spacing.spacing4};
   border-top: 1px solid ${({ theme }) => theme.colors.gray.gray5};
   background-color: ${({ theme }) => theme.colors.gray.gray0};
@@ -11,6 +13,15 @@ const WrongNoteListItemWrapper = styled.div`
   display: grid;
   grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
   align-items: center;
+
+  /* 드래그 스타일 추가 */
+  transition: opacity 0.2s;
+  opacity: ${({ isDragging }) => (isDragging ? 0.5 : 1)};
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
 `;
 
 const WrongNoteInfoWrapper = styled.div`
@@ -60,7 +71,8 @@ const DifficultyLevel = styled.span`
   color: ${({ theme }) => theme.colors.red.red3};
   border-radius: ${({ theme }) => theme.radius.radius2};
   width: fit-content;
-  padding: ${({ theme }) => theme.spacing.spacing1} ${({ theme }) => theme.spacing.spacing2};
+  padding: ${({ theme }) => theme.spacing.spacing1}
+    ${({ theme }) => theme.spacing.spacing2};
 `;
 
 const CategoryType = styled.span`
@@ -71,7 +83,8 @@ const CategoryType = styled.span`
   color: ${({ theme }) => theme.colors.blue.blue2};
   border-radius: ${({ theme }) => theme.radius.radius2};
   width: fit-content;
-  padding: ${({ theme }) => theme.spacing.spacing1} ${({ theme }) => theme.spacing.spacing2};
+  padding: ${({ theme }) => theme.spacing.spacing1}
+    ${({ theme }) => theme.spacing.spacing2};
 `;
 
 const RetryBtn = styled.button`
@@ -79,15 +92,12 @@ const RetryBtn = styled.button`
   font-weight: ${({ theme }) => theme.typography.label2Bold.fontWeight};
   line-height: ${({ theme }) => theme.typography.label2Bold.lineHeight};
   background-color: ${({ theme }) => theme.colors.semantic.primary};
-  padding: ${({ theme }) => theme.spacing.spacing2} ${({ theme }) => theme.spacing.spacing5};
+  padding: ${({ theme }) => theme.spacing.spacing2}
+    ${({ theme }) => theme.spacing.spacing5};
   color: ${({ theme }) => theme.colors.gray.gray0};
   border-radius: ${({ theme }) => theme.radius.radius2};
   width: fit-content;
 `;
-
-interface WrongNoteListItemProps {
-  item: WrongNoteSet;
-}
 
 interface WrongNoteSet {
   questionSetId: number;
@@ -98,7 +108,23 @@ interface WrongNoteSet {
   incorrectCount: number;
 }
 
-function WrongNoteListItem({ item }: WrongNoteListItemProps) {
+interface WrongNoteListItemProps {
+  item: WrongNoteSet;
+  draggable: boolean;
+  onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDragEnd: () => void;
+  isDragging: boolean;
+  onContextMenu: (e: React.MouseEvent<HTMLDivElement>) => void; // onContextMenu prop 추가
+}
+
+function WrongNoteListItem({
+  item,
+  draggable,
+  onDragStart,
+  onDragEnd,
+  isDragging,
+  onContextMenu, // onContextMenu prop 받기
+}: WrongNoteListItemProps) {
   // TODO: 여기에 몇번 오답문제지인지도 넘겨줘서 해야함
   const navigate = useNavigate();
 
@@ -107,7 +133,13 @@ function WrongNoteListItem({ item }: WrongNoteListItemProps) {
   };
 
   return (
-    <WrongNoteListItemWrapper>
+    <WrongNoteListItemWrapper
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      isDragging={isDragging}
+      onContextMenu={onContextMenu} // onContextMenu prop 적용
+    >
       <WrongNoteInfoWrapper>
         <IconWrapper>
           <BookOpen color="green" size={16} />
@@ -119,7 +151,7 @@ function WrongNoteListItem({ item }: WrongNoteListItemProps) {
       </WrongNoteInfoWrapper>
       <WrongCount>{item.incorrectCount}개</WrongCount>
       <DifficultyLevel>{item.difficulty}</DifficultyLevel>
-      <CategoryType>{'수학'}</CategoryType>
+      <CategoryType>{item.majorTopic}</CategoryType>
       <RetryBtn onClick={handleReviewNavigate}>복습하기</RetryBtn>
     </WrongNoteListItemWrapper>
   );

@@ -251,8 +251,12 @@ const Library = () => {
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [isVisibleMenu, setIsVisibleMenu] = useState<boolean>(false);
-  const [selectedCell, setSelectedCell] = useState<QuestionSetContentType | null>(null);
-  const [draggedItem, setDraggedItem] = useState<QuestionSetContentType | null>(null);
+  const [selectedCell, setSelectedCell] = useState<QuestionSetContentType | null>(
+    null,
+  );
+  const [draggedItem, setDraggedItem] = useState<QuestionSetContentType | null>(
+    null,
+  );
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
 
   const [mousePoint, setMousePoint] = useState<{
@@ -311,7 +315,13 @@ const Library = () => {
   });
 
   const moveFolderMutation = useMutation({
-    mutationFn: ({ questionSetId, folderId }: { questionSetId: number; folderId: number }) => {
+    mutationFn: ({
+      questionSetId,
+      folderId,
+    }: {
+      questionSetId: number;
+      folderId: number;
+    }) => {
       return api.patch(`/question-set/${questionSetId}`, {
         commonFolderId: folderId,
       });
@@ -369,7 +379,9 @@ const Library = () => {
   const { data: folders, isPending: isFoldersPending } = useQuery({
     queryKey: ['folders'],
     queryFn: async () => {
-      const res = await api.get<Folder[]>(`/common-folders?type=${QUESTION_SET_TYPE}`);
+      const res = await api.get<Folder[]>(
+        `/common-folders?type=${QUESTION_SET_TYPE}`,
+      );
       return res.data.sort((a, b) => a.sortOrder - b.sortOrder);
     },
   });
@@ -396,12 +408,17 @@ const Library = () => {
     },
     enabled: selectedFolderId !== null,
     refetchInterval: (query) =>
-      query.state.data?.questionSets.content.some((item) => item.status === 'PENDING')
+      query.state.data?.questionSets.content.some(
+        (item) => item.status === 'PENDING',
+      )
         ? 5000
         : false,
   });
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, item: QuestionSetContentType) => {
+  const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    item: QuestionSetContentType,
+  ) => {
     setDraggedItem(item);
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -455,7 +472,11 @@ const Library = () => {
 
   return (
     <Container>
-      <RightClickMenu isVisible={isVisibleMenu} setIsVisible={setIsVisibleMenu} point={mousePoint}>
+      <RightClickMenu
+        isVisible={isVisibleMenu}
+        setIsVisible={setIsVisibleMenu}
+        point={mousePoint}
+      >
         <RightClickMenuItem
           icon="✏️"
           title="문제집 이름 변경"
@@ -533,7 +554,11 @@ const Library = () => {
           </ListRow>
 
           {[...filteredQuestionSets]
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )
             .map((item) => {
               const isEditing = editingItemId === item.questionSetId;
 
@@ -563,8 +588,12 @@ const Library = () => {
                           autoFocus
                         />
                         <div>
-                          <EditIconButton onClick={() => submitTitleEdit(item)}>✔️</EditIconButton>
-                          <EditIconButton onClick={() => setEditingItemId(null)}>❌</EditIconButton>
+                          <EditIconButton onClick={() => submitTitleEdit(item)}>
+                            ✔️
+                          </EditIconButton>
+                          <EditIconButton onClick={() => setEditingItemId(null)}>
+                            ❌
+                          </EditIconButton>
                         </div>
                       </TitleContainer>
                     ) : (
@@ -575,7 +604,9 @@ const Library = () => {
                   </ListCell>
                   <ListCell>{item.questionCount}</ListCell>
                   <ListCell>
-                    {new Intl.DateTimeFormat('sv-SE').format(new Date(item.createdAt))}
+                    {new Intl.DateTimeFormat('sv-SE').format(
+                      new Date(item.createdAt),
+                    )}
                   </ListCell>
                   <ListCell>{TYPE_MAP[item.questionType] ?? '생성 실패'}</ListCell>
                   <StatusCell status={item.status}>
@@ -583,7 +614,9 @@ const Library = () => {
                   </StatusCell>
                   <ListCell>
                     {item.status === 'COMPLETE' && (
-                      <PrimaryButton onClick={() => handleSolveClick(item.questionSetId)}>
+                      <PrimaryButton
+                        onClick={() => handleSolveClick(item.questionSetId)}
+                      >
                         풀기
                       </PrimaryButton>
                     )}

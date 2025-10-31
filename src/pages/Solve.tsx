@@ -63,7 +63,6 @@ function Solve() {
   }; // 해설 보러 가는 wrapper 함수
   const isReviewing = searchParams.get('isReviewing') === 'true';
 
-  console.log('풀고있는 문제 state', solvedCheck);
   // 1. 서버로부터 문제조회를 하는 부분 questionSetId로 문제집 조회
   const { isPending, error, data } = useQuery({
     queryKey: ['questionSet', questionSetId, isReviewing],
@@ -172,7 +171,12 @@ function Solve() {
             <SolveContentWrapper>
               {renderSolveComponent()}
               <RightSidebar>
-                <ProgressCard questionLength={data.questions.length} solvedCheck={solvedCheck} />
+                <ProgressCard
+                  questionLength={data.questions.length}
+                  solvedCheck={solvedCheck}
+                  questions={data}
+                  setIsAllSolved={setIsAllSolved}
+                />
               </RightSidebar>
             </SolveContentWrapper>
           </>

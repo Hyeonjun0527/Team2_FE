@@ -1,7 +1,7 @@
 // 필수 라이브러리
 import styled from '@emotion/styled';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 // UI 컴포넌트
 import SideBar from '@/shared/components/SideBar/SideBar';
@@ -56,12 +56,6 @@ function AppLayout() {
   // wrapper 함수들
   const openSideBar = () => setIsOpen(true); // LSB 여는 함수
   const closeSideBar = () => setIsOpen(false); // LSB 닫는 함수
-  const handleNavigate = useCallback(
-    (path: string) => {
-      navigate(path);
-    },
-    [navigate],
-  );
 
   // SSE 연결 설정
   useEffect(() => {
@@ -91,7 +85,7 @@ function AppLayout() {
         setQuestionSetId(payload.questionSetId); // 만들어진 문제집 id 상태 변경
         toast(payload.message, {
           onClick: () => {
-            handleNavigate(`/solve/${payload.questionSetId}`);
+            navigate(`/solve/${payload.questionSetId}`);
           },
         });
       } else {
@@ -103,7 +97,8 @@ function AppLayout() {
     return () => {
       es.close();
     };
-  }, [handleNavigate]); // navigate는 안정적인 참조이므로 의존성에 포함해도 재실행되지 않음
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const esClose = () => {
     if (esRef.current) {

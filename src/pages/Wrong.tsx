@@ -31,21 +31,25 @@ const ContentWrapper = styled.div`
 const WrongPageTitleWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.spacing2};
-  margin-bottom: ${({ theme }) => theme.spacing.spacing2};
 `;
 
 const WrongPageTitle = styled.div`
+  width: 100%;
   font-size: ${({ theme }) => theme.typography.title1Bold.fontSize};
   font-weight: ${({ theme }) => theme.typography.title1Bold.fontWeight};
   line-height: ${({ theme }) => theme.typography.title1Bold.lineHeight};
+  text-align: left;
+  padding: 5px 0px;
 `;
 
 const WrongPageDescription = styled.p`
+  display: block;
+  width: 100%;
   font-size: ${({ theme }) => theme.typography.subtitle2Regular.fontSize};
   font-weight: ${({ theme }) => theme.typography.subtitle2Regular.fontWeight};
   line-height: ${({ theme }) => theme.typography.subtitle2Regular.lineHeight};
-  color: ${({ theme }) => theme.colors.gray.gray7};
+  color: ${({ theme }) => theme.colors.gray.gray6};
+  text-align: left;
 `;
 
 // 검색바 부분
@@ -89,27 +93,24 @@ const SearchBar = styled.input`
 const WrongNoteList = styled.div`
   display: flex;
   flex-direction: column;
-  /* border: 1px solid ${({ theme }) => theme.colors.gray.gray5}; */
-  border-radius: ${({ theme }) => theme.radius.radius3};
-  overflow: hidden;
+  border-radius: ${({ theme }) => theme.radius.radius4};
+  background-color: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 `;
 
 const WrongNoteListHeader = styled.div`
   display: grid;
   grid-template-columns: 3fr 1fr 1fr 1fr;
-  background-color: ${({ theme }) => theme.colors.gray.gray0};
-  padding: ${({ theme }) => theme.spacing.spacing5} ${({ theme }) => theme.spacing.spacing5};
-  font-size: ${({ theme }) => theme.typography.label2Regular.fontSize};
-  font-weight: ${({ theme }) => theme.typography.label2Regular.fontWeight};
-  line-height: ${({ theme }) => theme.typography.label2Regular.lineHeight};
+  align-items: center;
+  width: 100%;
+  padding: 16px 24px;
+  transition: background-color 0.2s ease-in-out;
 `;
 
 const WrongNoteListHeaderColumn = styled.span`
-  font-size: ${({ theme }) => theme.typography.label2Bold.fontSize};
-  font-weight: ${({ theme }) => theme.typography.label2Bold.fontWeight};
-  line-height: ${({ theme }) => theme.typography.label2Bold.lineHeight};
-  color: ${({ theme }) => theme.colors.gray.gray9};
+  font-weight: 600;
+  font-size: ${({ theme }) => theme.typography.body3Regular.fontSize};
 `;
 
 // 폴더 관련 타입 + 인터페이스들

@@ -26,6 +26,11 @@ const ContentWrapper = styled.div`
   flex-direction: column;
   width: 100%;
   max-width: 1000px;
+
+  @media (max-width: 1050px) {
+    max-width: 100%;
+    padding: 0 ${({ theme }) => theme.spacing.spacing3};
+  }
 `;
 
 const WrongPageTitleWrapper = styled.div`
@@ -57,8 +62,7 @@ const SearchBarWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: ${({ theme }) => theme.spacing.spacing7};
-  margin-bottom: ${({ theme }) => theme.spacing.spacing7};
+  margin: ${({ theme }) => theme.spacing.spacing3} 0;
 `;
 
 const SearchBarDescription = styled.p`
@@ -79,9 +83,9 @@ const SearchBar = styled.input`
   line-height: ${({ theme }) => theme.typography.label1Regular.lineHeight};
   padding: ${({ theme }) => theme.spacing.spacing4};
 
-  border: 1px solid ${({ theme }) => theme.colors.gray.gray3};
+  border: 1px solid ${({ theme }) => theme.colors.gray.gray4};
   border-radius: ${({ theme }) => theme.radius.radius2};
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); */
   &:focus {
     outline: none;
     border: 1px solid ${({ theme }) => theme.colors.semantic.primary};
@@ -104,13 +108,17 @@ const WrongNoteListHeader = styled.div`
   grid-template-columns: 3fr 1fr 1fr 1fr;
   align-items: center;
   width: 100%;
-  padding: 16px 24px;
+  padding: ${({ theme }) => theme.spacing.spacing4} ${({ theme }) => theme.spacing.spacing6};
   transition: background-color 0.2s ease-in-out;
 `;
 
 const WrongNoteListHeaderColumn = styled.span`
   font-weight: 600;
   font-size: ${({ theme }) => theme.typography.body3Regular.fontSize};
+
+  &:not(:first-child) {
+    text-align: center;
+  }
 `;
 
 // 폴더 관련 타입 + 인터페이스들

@@ -152,6 +152,15 @@ const TitleText = styled.span`
   text-overflow: ellipsis;
 `;
 
+const SourceNames = styled.div`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray.gray6};
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
 const TitleEditInput = styled.input`
   border: 1px solid ${({ theme }) => theme.colors.border.border1};
   padding: 4px 8px;
@@ -594,9 +603,16 @@ const Library = () => {
                         </div>
                       </TitleContainer>
                     ) : (
-                      <TitleContainer>
-                        <TitleText title={item.title}>{item.title}</TitleText>
-                      </TitleContainer>
+                      <div>
+                        <TitleContainer>
+                          <TitleText title={item.title}>{item.title}</TitleText>
+                        </TitleContainer>
+                        {item.sourceNames && item.sourceNames.length > 0 && (
+                          <SourceNames title={item.sourceNames.join(', ')}>
+                            자료: {item.sourceNames.join(', ')}
+                          </SourceNames>
+                        )}
+                      </div>
                     )}
                   </ListCell>
                   <ListCell>{item.questionCount}</ListCell>

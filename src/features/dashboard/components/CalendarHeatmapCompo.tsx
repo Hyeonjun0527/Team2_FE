@@ -29,6 +29,21 @@ const CalendarHeatmapWrapper = styled.div`
   }
 `;
 
+const HeatmapScrollWrapper = styled.div`
+  @media (max-width: 1050px) {
+    overflow-x: auto;
+
+    .react-calendar-heatmap {
+      font-size: 12px;
+      min-width: 800px;
+    }
+
+    .react-calendar-heatmap svg {
+      min-height: 150px;
+    }
+  }
+`;
+
 const CalendarHeatmapTitleWrapper = styled.div`
   display: flex;
   align-items: center;
@@ -70,31 +85,34 @@ function CalendarHeatmapCompo({ values, startDate, endDate }: Props) {
         <CalendarHeatmapSupTitle>지난 1년간 {values.length}일 학습</CalendarHeatmapSupTitle>
       </CalendarHeatmapTitleWrapper>
 
-      <CalendarHeatmap
-        startDate={new Date(startDate)}
-        endDate={new Date(endDate)}
-        values={values}
-        titleForValue={(value: unknown) => {
-          const v = value as DailyStatItem | undefined;
-          if (!v) {
-            return '';
+      <HeatmapScrollWrapper>
+        <CalendarHeatmap
+          startDate={new Date(startDate)}
+          endDate={new Date(endDate)}
+          values={values}
+          gutterSize={0.5}
+          titleForValue={(value: unknown) => {
+            const v = value as DailyStatItem | undefined;
+            if (!v) {
+              return '';
+            }
+            return `${v.date}: ${v.count}회`;
+          }}
+          transformDayElement={(rect) =>
+            cloneElement(
+              rect as ReactElement,
+              { rx: 2, ry: 2 } as unknown as SVGProps<SVGRectElement>,
+            )
           }
-          return `${v.date}: ${v.count}회`;
-        }}
-        transformDayElement={(rect) =>
-          cloneElement(
-            rect as ReactElement,
-            { rx: 2, ry: 2 } as unknown as SVGProps<SVGRectElement>,
-          )
-        }
-        classForValue={(value) => {
-          if (!value) return 'color-empty';
-          if (value.count === 0) return 'color-empty';
-          if (value.count < 10) return 'color-scale-1';
-          if (value.count < 40) return 'color-scale-2';
-          return 'color-scale-3';
-        }}
-      />
+          classForValue={(value) => {
+            if (!value) return 'color-empty';
+            if (value.count === 0) return 'color-empty';
+            if (value.count < 10) return 'color-scale-1';
+            if (value.count < 40) return 'color-scale-2';
+            return 'color-scale-3';
+          }}
+        />
+      </HeatmapScrollWrapper>
     </CalendarHeatmapWrapper>
   );
 }

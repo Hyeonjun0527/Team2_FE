@@ -9,7 +9,7 @@ import QuestionNavigator from '@/features/solve/components/QuestionNavigator';
 
 import ProgressCard from '@/features/solve/components/ProgressCard';
 
-import SolveResult from './SolveResult';
+import SolveResult from '../features/solve/components/SolveResult';
 
 import type { QuestionSet } from '@/features/solve/types/question';
 
@@ -17,6 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/shared/api/axiosClient';
 import { useParams, useSearchParams } from 'react-router-dom';
 import type { MarkingRequest } from '@/features/solve/types/MarkingRequest';
+import { AxiosError } from 'axios';
 
 import Spinner from '@/shared/components/Spinner';
 
@@ -24,6 +25,8 @@ import Spinner from '@/shared/components/Spinner';
 import MultipleChoiceSolve from '@/features/solve/components/question-types/MultipleChoiceSolve';
 import ShortAnswerSolve from '@/features/solve/components/question-types/ShortAnswerSolve';
 import TrueFalseSolve from '@/features/solve/components/question-types/TrueFalseSolve';
+
+import NotFoundQuestionSet from '@/features/solve/components/NotFoundQuestionSet';
 
 const SolveWrapper = styled.div`
   margin-top: ${({ theme }) => theme.spacing.spacing5};
@@ -34,11 +37,24 @@ const SolveWrapper = styled.div`
   max-width: 960px;
   padding: 0px 20px;
   background-color: ${({ theme }) => theme.colors.gray.gray2};
+
+  @media (max-width: 1050px), (max-height: 400px) {
+    margin-top: ${({ theme }) => theme.spacing.spacing3};
+    min-width: unset;
+    width: 100%;
+    max-width: 100%;
+    padding: 0px ${({ theme }) => theme.spacing.spacing3};
+  }
 `;
 
 const SolveContentWrapper = styled.div`
   margin-top: ${({ theme }) => theme.spacing.spacing3};
   display: flex;
+
+  @media (max-width: 1050px), (max-height: 400px) {
+    flex-direction: column;
+    gap: ${({ theme }) => theme.spacing.spacing3};
+  }
 `;
 
 const RightSidebar = styled.div`
@@ -46,6 +62,11 @@ const RightSidebar = styled.div`
   display: flex;
   flex-direction: column;
   min-width: 180px;
+
+  @media (max-width: 1050px), (max-height: 400px) {
+    min-width: unset;
+    width: 100%;
+  }
 `;
 
 function Solve() {
@@ -63,10 +84,9 @@ function Solve() {
   }; // 해설 보러 가는 wrapper 함수
   const isReviewing = searchParams.get('isReviewing') === 'true';
 
-  console.log('풀고있는 문제 state', solvedCheck);
   // 1. 서버로부터 문제조회를 하는 부분 questionSetId로 문제집 조회
-  const { isPending, error, data } = useQuery({
-    queryKey: ['questionSet', questionSetId, isReviewing],
+  const { isPending, error, data } = useQuery<QuestionSet, AxiosError>({
+    queryKey: ['questionSet', 'detail', questionSetId, isReviewing],
     queryFn: async () => {
       const url = isReviewing
         ? `/question-set/${questionSetId}?isReviewing=true`
@@ -75,9 +95,20 @@ function Solve() {
 
       return res.data;
     },
+    retry: (failureCount, error) => {
+      const status = error.response?.status;
+
+      // 문제집 번호가 없는 경우 바로 에러로 처리
+      if (status === 404) return false;
+
+      // 해당 문제집에 대한 접근 권한이 없을 경우 바로 에러로 처리
+      if (status === 400) return false;
+
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 8000),
   });
 
-  // console.log(data);
   // 로딩
   if (isPending)
     return (
@@ -90,7 +121,7 @@ function Solve() {
   if (error)
     return (
       <PageLayout>
-        <h1>Error</h1>
+        <NotFoundQuestionSet />
       </PageLayout>
     );
 
@@ -172,7 +203,13 @@ function Solve() {
             <SolveContentWrapper>
               {renderSolveComponent()}
               <RightSidebar>
-                <ProgressCard questionLength={data.questions.length} solvedCheck={solvedCheck} />
+                <ProgressCard
+                  questionLength={data.questions.length}
+                  solvedCheck={solvedCheck}
+                  questions={data}
+                  setIsAllSolved={setIsAllSolved}
+                  isExplanationPage={isExplanationPage}
+                />
               </RightSidebar>
             </SolveContentWrapper>
           </>

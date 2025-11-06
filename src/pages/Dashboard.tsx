@@ -1,9 +1,15 @@
+// 필수 라이브러리
 import styled from '@emotion/styled';
-import { BookOpen, CheckCircle, Target, Flame } from 'lucide-react';
-import api from '@/shared/api/axiosClient';
 import { useQuery } from '@tanstack/react-query';
+// 에셋
+import { BookOpen, CheckCircle, Target, Flame } from 'lucide-react';
+// API
+import api from '@/shared/api/axiosClient';
+// 로그인 정보
 import { useAuth } from '@/app/auth/useAuth';
+// UI 컴포넌트
 import CalendarHeatmapCompo from '@/features/dashboard/components/CalendarHeatmapCompo';
+// 타입
 import type { LearnStatsResponse } from '@/features/dashboard/types/learnStats';
 import type { DailyStatsResponse } from '@/features/dashboard/types/dailyStats';
 
@@ -21,30 +27,48 @@ const Container = styled.div`
 
 const DashboardWrapper = styled.div`
   width: 100%;
+  max-width: 1400px;
   padding: ${({ theme }) => theme.spacing.spacing5};
   height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
   justify-content: flex-start;
+
+  @media (max-width: 1050px), (max-height: 400px) {
+    max-width: 100%;
+    padding: ${({ theme }) => theme.spacing.spacing3};
+    overflow-x: hidden;
+  }
 `;
 
 const DashboardTitle = styled.h1`
+  width: 100%;
   font-size: ${({ theme }) => theme.typography.title1Bold.fontSize};
   font-weight: ${({ theme }) => theme.typography.title1Bold.fontWeight};
   line-height: ${({ theme }) => theme.typography.title1Bold.lineHeight};
+  text-align: left;
+  margin-bottom: 5px;
 `;
 
 const DashboardDescription = styled.p`
+  display: block;
+  width: 100%;
   font-size: ${({ theme }) => theme.typography.subtitle2Regular.fontSize};
   font-weight: ${({ theme }) => theme.typography.subtitle2Regular.fontWeight};
   line-height: ${({ theme }) => theme.typography.subtitle2Regular.lineHeight};
-  color: ${({ theme }) => theme.colors.gray.gray7};
+  color: ${({ theme }) => theme.colors.gray.gray6};
+  text-align: left;
 `;
 
 const DashboardStatCardWrapper = styled.div`
   display: flex;
   margin-top: ${({ theme }) => theme.spacing.spacing5};
   justify-content: space-between;
+
+  @media (max-width: 1050px), (max-height: 400px) {
+    flex-wrap: wrap;
+    gap: ${({ theme }) => theme.spacing.spacing3};
+  }
 `;
 const DashboardStatCard = styled.div`
   width: 24%;
@@ -56,6 +80,11 @@ const DashboardStatCard = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.spacing4};
+
+  @media (max-width: 1050px), (max-height: 400px) {
+    width: calc(50% - ${({ theme }) => theme.spacing.spacing3} / 2);
+    min-width: 0;
+  }
 `;
 
 const BookOpenWrapper = styled.div`

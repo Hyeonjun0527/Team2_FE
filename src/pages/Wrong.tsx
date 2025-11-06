@@ -6,7 +6,9 @@ import { useQuery } from '@tanstack/react-query';
 import type { WrongNoteSetResponse } from '@/features/wrong/types/wrongNote';
 import { useState, useEffect } from 'react';
 import Spinner from '@/shared/components/Spinner';
+import FolderList, { type Folder } from '@/shared/components/FolderList';
 
+// prettier 돌려줘
 const WrongWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -24,26 +26,35 @@ const ContentWrapper = styled.div`
   flex-direction: column;
   width: 100%;
   max-width: 1000px;
+
+  @media (max-width: 1050px), (max-height: 400px) {
+    max-width: 100%;
+    padding: 0 ${({ theme }) => theme.spacing.spacing3};
+  }
 `;
 
 const WrongPageTitleWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.spacing2};
-  margin-bottom: ${({ theme }) => theme.spacing.spacing2};
 `;
 
 const WrongPageTitle = styled.div`
+  width: 100%;
   font-size: ${({ theme }) => theme.typography.title1Bold.fontSize};
   font-weight: ${({ theme }) => theme.typography.title1Bold.fontWeight};
   line-height: ${({ theme }) => theme.typography.title1Bold.lineHeight};
+  text-align: left;
+  padding: 5px 0px;
 `;
 
 const WrongPageDescription = styled.p`
+  display: block;
+  width: 100%;
   font-size: ${({ theme }) => theme.typography.subtitle2Regular.fontSize};
   font-weight: ${({ theme }) => theme.typography.subtitle2Regular.fontWeight};
   line-height: ${({ theme }) => theme.typography.subtitle2Regular.lineHeight};
-  color: ${({ theme }) => theme.colors.gray.gray7};
+  color: ${({ theme }) => theme.colors.gray.gray6};
+  text-align: left;
 `;
 
 // 검색바 부분
@@ -51,30 +62,21 @@ const SearchBarWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: ${({ theme }) => theme.spacing.spacing7};
-  margin-bottom: ${({ theme }) => theme.spacing.spacing7};
-`;
-
-const SearchBarDescription = styled.p`
-  font-size: ${({ theme }) => theme.typography.label2Regular.fontSize};
-  font-weight: ${({ theme }) => theme.typography.label2Regular.fontWeight};
-  line-height: ${({ theme }) => theme.typography.label2Regular.lineHeight};
-  color: ${({ theme }) => theme.colors.gray.gray7};
+  margin: ${({ theme }) => theme.spacing.spacing3} 0;
 `;
 
 const SearchBar = styled.input`
-  width: 300px;
-  height: 30px;
-  border: 1px solid ${({ theme }) => theme.colors.gray.gray4};
+  width: 100%;
+  border: 1px solid ${({ theme }) => theme.colors.border.border1};
   border-radius: ${({ theme }) => theme.radius.radius2};
   background-color: ${({ theme }) => theme.colors.gray.gray0};
   font-size: ${({ theme }) => theme.typography.label1Regular.fontSize};
   font-weight: ${({ theme }) => theme.typography.label1Regular.fontWeight};
   line-height: ${({ theme }) => theme.typography.label1Regular.lineHeight};
-  padding: ${({ theme }) => theme.spacing.spacing2};
+  padding: ${({ theme }) => theme.spacing.spacing3} ${({ theme }) => theme.spacing.spacing4};
 
-  border: 1px solid ${({ theme }) => theme.colors.gray.gray3};
-  border-radius: ${({ theme }) => theme.radius.radius1};
+  border: 1px solid ${({ theme }) => theme.colors.gray.gray4};
+  border-radius: ${({ theme }) => theme.radius.radius3};
   &:focus {
     outline: none;
     border: 1px solid ${({ theme }) => theme.colors.semantic.primary};
@@ -86,38 +88,83 @@ const SearchBar = styled.input`
 const WrongNoteList = styled.div`
   display: flex;
   flex-direction: column;
-  border: 1px solid ${({ theme }) => theme.colors.gray.gray5};
-  border-radius: ${({ theme }) => theme.radius.radius2};
+  border-radius: ${({ theme }) => theme.radius.radius4};
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 `;
 
 const WrongNoteListHeader = styled.div`
   display: grid;
-  grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
-  background-color: ${({ theme }) => theme.colors.gray.gray1};
-  /* align-items: center; */
-  padding: ${({ theme }) => theme.spacing.spacing3} ${({ theme }) => theme.spacing.spacing4};
-  /* border-bottom: 1px solid ${({ theme }) => theme.colors.gray.gray4}; */
+  grid-template-columns: 3fr 1fr 1fr 1fr;
+  align-items: center;
+  width: 100%;
+  padding: ${({ theme }) => theme.spacing.spacing4} ${({ theme }) => theme.spacing.spacing6};
+  transition: background-color 0.2s ease-in-out;
+
+  @media (max-width: 1050px), (max-height: 400px) {
+    display: none; /* 모바일에서 헤더 숨김 */
+  }
 `;
 
 const WrongNoteListHeaderColumn = styled.span`
-  font-size: ${({ theme }) => theme.typography.label2Regular.fontSize};
-  font-weight: ${({ theme }) => theme.typography.label2Regular.fontWeight};
-  line-height: ${({ theme }) => theme.typography.label2Regular.lineHeight};
-  color: ${({ theme }) => theme.colors.gray.gray9};
+  font-weight: 600;
+  font-size: ${({ theme }) => theme.typography.body3Regular.fontSize};
+
+  &:not(:first-of-type) {
+    text-align: center;
+  }
 `;
 
+// 폴더 관련 타입 + 인터페이스들
+const QUESTION_SET_TYPE = 'QUESTION_SET';
+const ALL_FOLDER_ID = 1;
+
+interface QuestionSetContent {
+  questionSetId: number;
+}
+
 function Wrong() {
+  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState(''); // 검색 버퍼
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(''); // 검색 값 저장
+  // 오답노트 조회
   const { isPending, error, data } = useQuery({
-    queryKey: ['wrongNoteSet', 'wrongNoteSetId'],
+    queryKey: ['wrongNotes', 'list'],
     queryFn: async () => {
       const res = await api.get<WrongNoteSetResponse>(`/wrong-answers/all`);
       return res.data;
     },
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  // 폴더 목록 조회
+  const { data: folders } = useQuery({
+    queryKey: ['folders', 'all'],
+    queryFn: async () => {
+      const res = await api.get<Folder[]>(`/common-folders?type=${QUESTION_SET_TYPE}`);
+      return res.data.sort((a, b) => {
+        if (a.scope === 'ALL' && b.scope !== 'ALL') return -1;
+        if (a.scope !== 'ALL' && b.scope === 'ALL') return 1;
+        return a.sortOrder - b.sortOrder;
+      });
+    },
+  });
+
+  useEffect(() => {
+    if (folders && folders.length > 0 && selectedFolderId === null) {
+      setSelectedFolderId(folders[0].id);
+    }
+  }, [folders, selectedFolderId]);
+
+  // 선택된 폴더에 포함된 문제집 목록 조회 (ID만 필요) 이 부분 좀 이상함
+  const { data: questionSetsData } = useQuery({
+    queryKey: ['questionSets', 'forFolder', selectedFolderId],
+    queryFn: async () => {
+      const res = await api.get(`/question-set?size=9999&folderId=${selectedFolderId}`);
+      return res.data as { questionSets: { content: QuestionSetContent[] } };
+    },
+    enabled: selectedFolderId !== null,
+  });
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -131,13 +178,18 @@ function Wrong() {
 
   const normalize = (str: string) => str.toLowerCase().normalize('NFC').replace(/\s+/g, '');
 
-  const filteredQuestionSets = data?.filter((item) =>
-    normalize(item.questionSetTitle).includes(normalize(debouncedSearchTerm)),
+  const filteredQuestionSets = data?.filter(
+    (item) =>
+      normalize(item.questionSetTitle).includes(normalize(debouncedSearchTerm)) &&
+      (selectedFolderId === null || selectedFolderId === ALL_FOLDER_ID
+        ? true
+        : (questionSetsData?.questionSets?.content || []).some(
+            (qs: { questionSetId: number }) => qs.questionSetId === item.questionSetId,
+          )),
   );
 
-  // 로딩
+  // TODO: 나중에 에러 바운더리랑 서스팬스 적용되면 지울수도???
   if (isPending) return <Spinner />;
-  // 에러
   if (error) return <h1>Error</h1>;
 
   return (
@@ -150,22 +202,30 @@ function Wrong() {
           문제집별로 틀린 문제를 분석하고 완벽히 이해할 때까지 학습하세요
         </WrongPageDescription>
         <SearchBarWrapper>
-          <SearchBarDescription>
-            {filteredQuestionSets?.length}개의 오답이 검색되었습니다
-          </SearchBarDescription>
           <SearchBar
             placeholder="오답노트 제목으로 검색"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </SearchBarWrapper>
+        <FolderList
+          folders={folders}
+          selectedFolderId={selectedFolderId}
+          onFolderSelect={setSelectedFolderId}
+          // Wrong 페이지에서는 드래그로 문제집을 이동시키는 기능을 아직 사용하지 않으므로 null/noop 전달
+          draggedItem={null}
+          onItemDrop={() => {
+            /* noop */
+          }}
+          addFolderDisabled={true}
+          rightClickDisabled={true}
+        />
         <WrongNoteList>
           <WrongNoteListHeader>
             <WrongNoteListHeaderColumn>문제집</WrongNoteListHeaderColumn>
             <WrongNoteListHeaderColumn>오답 수</WrongNoteListHeaderColumn>
-            <WrongNoteListHeaderColumn>난이도</WrongNoteListHeaderColumn>
-            <WrongNoteListHeaderColumn>카테고리</WrongNoteListHeaderColumn>
-            <WrongNoteListHeaderColumn>작업</WrongNoteListHeaderColumn>
+            <WrongNoteListHeaderColumn>유형</WrongNoteListHeaderColumn>
+            <WrongNoteListHeaderColumn>오답노트</WrongNoteListHeaderColumn>
           </WrongNoteListHeader>
           {filteredQuestionSets?.map((item) => (
             <WrongNoteListItem key={item.questionSetId} item={item} />

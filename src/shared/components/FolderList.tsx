@@ -36,6 +36,7 @@ const FolderContainer = styled.div`
   margin-bottom: 16px;
 `;
 
+// 폴더 선택시 강조되는 부분 -FolderTag
 const FolderTag = styled.div<{
   isDragOver?: boolean;
   folderColor: string;
@@ -52,21 +53,33 @@ const FolderTag = styled.div<{
   font-size: ${({ theme }) => theme.typography.body3Regular.fontSize};
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
   user-select: none;
   font-weight: ${({ isActive }) => (isActive ? '700' : '500')};
-  box-shadow: ${({ isActive }) => (isActive ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none')};
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.1s;
 
-  ${({ isActive }) =>
+  /* 선택 시 스타일 강조 */
+  ${({ isActive, folderHoverColor }) =>
     isActive &&
     `
-      filter: brightness(0.7);
-    `}
+      background-color: ${folderHoverColor};
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
+      filter: brightness(1.1);
+      transform: none;
+  `}
 
   &:hover {
     background-color: ${({ folderHoverColor }) => folderHoverColor};
     border-color: ${({ folderHoverColor }) => folderHoverColor};
     color: white;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 

@@ -157,7 +157,7 @@ const DEFAULT_FOLDER_COLOR = '#d1d5db';
 
 const LoadingSpinner = styled.div`
   border: 2px solid #f3f3f3;
-  border-top: 2px solid #666;
+  border-top: 2px solid #16a34a;
   border-radius: 50%;
   width: 14px;
   height: 14px;
@@ -205,18 +205,24 @@ const PrimaryButton = styled(ActionButton)`
 const TitleContainer = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between; /* 양쪽 정렬 */
   gap: 8px;
   max-width: 100%;
+`;
 
-  @media (max-width: 1050px) {
-    width: 100%;
-  }
+const TitleTextWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  min-width: 0; /* flex-shrink 작동 */
+  flex: 1; /* 남는 공간 모두 차지 */
 `;
 
 const TitleText = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 1;
+  flex-grow: 1;
 `;
 
 const SourceNames = styled.div`
@@ -738,9 +744,12 @@ const Library = () => {
                     ) : (
                       <div>
                         <TitleContainer>
-                          <TitleText title={item.title}>{item.title}</TitleText>
                           {isPending && <LoadingSpinner />}
+                          <TitleTextWrapper>
+                            <TitleText title={item.title}>{item.title}</TitleText>
+                          </TitleTextWrapper>
                         </TitleContainer>
+
                         {item.sourceNames && item.sourceNames.length > 0 && (
                           <SourceNames title={item.sourceNames.join(', ')}>
                             자료: {item.sourceNames.join(', ')}

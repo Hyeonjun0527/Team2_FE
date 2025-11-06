@@ -269,7 +269,7 @@ const FolderSelectWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
+  width: 200px;
 `;
 
 const FolderSelectLabel = styled.span`
@@ -290,6 +290,10 @@ const FolderSelect = styled.select`
   color: ${({ theme }) => theme.colors.text.default};
   cursor: pointer;
   outline: none;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &:hover:not(:disabled) {
     border-color: ${({ theme }) => theme.colors.semantic.primary};
@@ -601,6 +605,8 @@ const Library = () => {
     ) ?? [];
 
   const isSelectedCellPending = selectedCell?.status === 'PENDING';
+  const selectedFolder = folders?.find((f) => f.id === selectedFolderId);
+  const selectedFolderName = selectedFolder?.name ?? '';
 
   return (
     <Container>
@@ -628,6 +634,7 @@ const Library = () => {
                 <FolderSelect
                   disabled={isSelectedCellPending}
                   defaultValue={selectedFolderId ?? ''}
+                  title={selectedFolderName}
                   onChange={(e) => {
                     const targetFolderId = Number(e.target.value);
                     if (targetFolderId !== selectedFolderId) {
@@ -637,7 +644,7 @@ const Library = () => {
                   onClick={(e) => e.stopPropagation()}
                 >
                   {folders.map((folder) => (
-                    <option key={folder.id} value={folder.id}>
+                    <option key={folder.id} value={folder.id} title={folder.name}>
                       {folder.name}
                     </option>
                   ))}

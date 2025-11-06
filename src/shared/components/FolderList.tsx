@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/shared/api/axiosClient';
 import RightClickMenu from '@/features/library/components/RightClickMenu/RightClickMenu';
@@ -7,6 +7,9 @@ import RightClickMenuItem from '@/features/library/components/RightClickMenu/Rig
 import { type QuestionSetContentType } from '@/features/library/types/questionSetResponse';
 import { Check, FolderIcon, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { getFolderColor } from '@/shared/constants/folderColors';
+
+// 폴더 이름 글자수 제한
+const MAX_LENGTH = 20;
 
 export interface Folder {
   id: number;
@@ -36,6 +39,7 @@ const FolderContainer = styled.div`
   margin-bottom: 16px;
 `;
 
+// 폴더 선택시 강조되는 부분 -FolderTag
 const FolderTag = styled.div<{
   isDragOver?: boolean;
   folderColor: string;
@@ -52,21 +56,33 @@ const FolderTag = styled.div<{
   font-size: ${({ theme }) => theme.typography.body3Regular.fontSize};
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
   user-select: none;
   font-weight: ${({ isActive }) => (isActive ? '700' : '500')};
-  box-shadow: ${({ isActive }) => (isActive ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none')};
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.1s;
 
-  ${({ isActive }) =>
+  /* 선택 시 스타일 강조 */
+  ${({ isActive, folderHoverColor }) =>
     isActive &&
     `
-      filter: brightness(0.7);
-    `}
+      background-color: ${folderHoverColor};
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
+      filter: brightness(1.1);
+      transform: none;
+  `}
 
   &:hover {
     background-color: ${({ folderHoverColor }) => folderHoverColor};
     border-color: ${({ folderHoverColor }) => folderHoverColor};
     color: white;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
@@ -154,6 +170,9 @@ const FolderList = ({
   const [editingFolderName, setEditingFolderName] = useState('');
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
+  const addInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
+
   const [folderMousePoint, setFolderMousePoint] = useState<{
     x: number;
     y: number;
@@ -233,11 +252,17 @@ const FolderList = ({
 
   const updateFolderNameMutation = useMutation({
     mutationFn: ({ id, name }: { id: number; name: string }) => {
-      if (!name.trim()) {
+      const trimmedName = name.trim();
+      if (!trimmedName) {
         throw new Error('폴더 이름은 비워둘 수 없습니다.');
       }
+
+      if (trimmedName.length > MAX_LENGTH) {
+        throw new Error(`폴더 이름은 ${MAX_LENGTH}자 이내여야 합니다.`);
+      }
+
       return api.patch(`/common-folders/${id}`, {
-        name,
+        name: trimmedName,
         type: QUESTION_SET_TYPE,
       });
     },
@@ -280,8 +305,13 @@ const FolderList = ({
   };
 
   const handleConfirmAddFolder = () => {
+    const trimmedName = newFolderName.trim();
     if (!newFolderName.trim()) {
       alert('폴더 이름을 입력해주세요.');
+      return;
+    }
+    if (trimmedName.length > MAX_LENGTH) {
+      alert(`폴더 이름은 ${MAX_LENGTH}자 이내로 입력해주세요.`);
       return;
     }
     createFolderMutation.mutate(newFolderName.trim());
@@ -360,8 +390,19 @@ const FolderList = ({
                   <>
                     {' '}
                     <FolderInput
+                      ref={addInputRef}
                       value={editingFolderName}
-                      onChange={(e) => setEditingFolderName(e.target.value)}
+                      onChange={(e) => {
+                        const newName = e.target.value;
+                        if (newName.length > MAX_LENGTH) {
+                          alert(`폴더 이름은 ${MAX_LENGTH}자 이내로 입력해주세요.`);
+                          setTimeout(() => {
+                            addInputRef.current?.focus();
+                          }, 0);
+                        } else {
+                          setEditingFolderName(newName);
+                        }
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           submitFolderNameEdit(folder);
@@ -400,8 +441,19 @@ const FolderList = ({
           <FolderInputContainer>
             <FolderIcon size={16} />
             <FolderInput
+              ref={editInputRef}
               value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
+              onChange={(e) => {
+                const newName = e.target.value;
+                if (newName.length > MAX_LENGTH) {
+                  alert(`폴더 이름은 ${MAX_LENGTH}자 이내로 입력해주세요.`);
+                  setTimeout(() => {
+                    editInputRef.current?.focus();
+                  }, 0);
+                } else {
+                  setNewFolderName(newName);
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleConfirmAddFolder();

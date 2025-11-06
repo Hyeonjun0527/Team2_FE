@@ -142,6 +142,7 @@ const FolderCellContent = styled.div`
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
+  max-width: 100%;
 `;
 
 const FolderColorDot = styled.span<{ color: string }>`
@@ -153,11 +154,17 @@ const FolderColorDot = styled.span<{ color: string }>`
   flex-shrink: 0;
 `;
 
+const FolderText = styled.span`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
 const DEFAULT_FOLDER_COLOR = '#d1d5db';
 
 const LoadingSpinner = styled.div`
   border: 2px solid #f3f3f3;
-  border-top: 2px solid #666;
+  border-top: 2px solid #16a34a;
   border-radius: 50%;
   width: 14px;
   height: 14px;
@@ -205,18 +212,24 @@ const PrimaryButton = styled(ActionButton)`
 const TitleContainer = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between; /* 양쪽 정렬 */
   gap: 8px;
   max-width: 100%;
+`;
 
-  @media (max-width: 1050px) {
-    width: 100%;
-  }
+const TitleTextWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  min-width: 0; /* flex-shrink 작동 */
+  flex: 1; /* 남는 공간 모두 차지 */
 `;
 
 const TitleText = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 1;
+  flex-grow: 1;
 `;
 
 const SourceNames = styled.div`
@@ -263,7 +276,7 @@ const FolderSelectWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
+  width: 200px;
 `;
 
 const FolderSelectLabel = styled.span`
@@ -284,6 +297,10 @@ const FolderSelect = styled.select`
   color: ${({ theme }) => theme.colors.text.default};
   cursor: pointer;
   outline: none;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &:hover:not(:disabled) {
     border-color: ${({ theme }) => theme.colors.semantic.primary};
@@ -595,6 +612,8 @@ const Library = () => {
     ) ?? [];
 
   const isSelectedCellPending = selectedCell?.status === 'PENDING';
+  const selectedFolder = folders?.find((f) => f.id === selectedFolderId);
+  const selectedFolderName = selectedFolder?.name ?? '';
 
   return (
     <Container>
@@ -621,17 +640,18 @@ const Library = () => {
                 <FolderSelectLabel>폴더 이동</FolderSelectLabel>
                 <FolderSelect
                   disabled={isSelectedCellPending}
-                  defaultValue={selectedFolderId ?? ''}
+                  value={selectedCell?.commonFolderId ?? selectedFolderId ?? ''}
+                  title={selectedFolderName}
                   onChange={(e) => {
                     const targetFolderId = Number(e.target.value);
-                    if (targetFolderId !== selectedFolderId) {
+                    if (targetFolderId !== selectedCell?.commonFolderId) {
                       handleMenuMoveToFolder(targetFolderId);
                     }
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {folders.map((folder) => (
-                    <option key={folder.id} value={folder.id}>
+                    <option key={folder.id} value={folder.id} title={folder.name}>
                       {folder.name}
                     </option>
                   ))}
@@ -682,11 +702,11 @@ const Library = () => {
         <Spacer height="12px" />
         <ListBox>
           <ListRow>
-            <HeaderCell align="left">문제집</HeaderCell>
+            <HeaderCell>문제집</HeaderCell>
             <HeaderCell>문제 수</HeaderCell>
             <HeaderCell>생성일</HeaderCell>
             <HeaderCell>유형</HeaderCell>
-            <HeaderCell align="left">폴더</HeaderCell>
+            <HeaderCell>폴더</HeaderCell>
             <HeaderCell>문제풀기</HeaderCell>
           </ListRow>
 
@@ -738,9 +758,12 @@ const Library = () => {
                     ) : (
                       <div>
                         <TitleContainer>
-                          <TitleText title={item.title}>{item.title}</TitleText>
                           {isPending && <LoadingSpinner />}
+                          <TitleTextWrapper>
+                            <TitleText title={item.title}>{item.title}</TitleText>
+                          </TitleTextWrapper>
                         </TitleContainer>
+
                         {item.sourceNames && item.sourceNames.length > 0 && (
                           <SourceNames title={item.sourceNames.join(', ')}>
                             자료: {item.sourceNames.join(', ')}
@@ -758,7 +781,11 @@ const Library = () => {
                   <DesktopOnly isDisabled={isPending}>
                     {TYPE_MAP[item.questionType] ?? '생성 실패'}
                   </DesktopOnly>
-                  <DesktopOnly align="left" isDisabled={isPending}>
+                  <DesktopOnly
+                    align="left"
+                    isDisabled={isPending}
+                    title={item.commonFolderName ?? undefined}
+                  >
                     <FolderCellContent>
                       <FolderColorDot
                         color={
@@ -767,7 +794,7 @@ const Library = () => {
                             : DEFAULT_FOLDER_COLOR
                         }
                       />
-                      <span>{item.commonFolderName ?? '-'}</span>
+                      <FolderText>{item.commonFolderName ?? '-'}</FolderText>
                     </FolderCellContent>
                   </DesktopOnly>
 
@@ -790,7 +817,9 @@ const Library = () => {
                           : DEFAULT_FOLDER_COLOR
                       }
                     />
-                    <span>폴더: {item.commonFolderName ?? '-'}</span>
+                    <span title={item.commonFolderName ?? undefined}>
+                      폴더: {item.commonFolderName ?? '-'}
+                    </span>
                   </MobileFolderInfo>
 
                   <ListCell isDisabled={isPending}>

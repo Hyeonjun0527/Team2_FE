@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import { NotificationSse } from '@/shared/utils/sse';
 import { getToken } from '@/shared/utils/tokenManager';
+import { showToast } from '../utils/toast';
 
 export const useSSEConnection = () => {
   const navigate = useNavigate();
@@ -47,13 +47,13 @@ export const useSSEConnection = () => {
       if (payload.success) {
         setQuestionSetReady(true); // 문제집 생성 완료 상태 변경
         setQuestionSetId(payload.questionSetId); // 만들어진 문제집 id 상태 변경
-        toast(payload.message, {
+        showToast(payload.message, {
           onClick: () => {
             navigate(`/solve/${payload.questionSetId}`);
           },
         });
       } else {
-        toast.error(payload.message || '문제집 생성에 실패했습니다.');
+        showToast(payload.message || '문제집 생성에 실패했습니다.');
       }
     });
 

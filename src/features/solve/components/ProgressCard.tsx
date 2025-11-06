@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import type { MarkingRequest } from '../types/MarkingRequest';
-import { toast } from 'react-toastify';
 import type { QuestionSet } from '@/features/solve/types/question';
+import { showToast } from '@/shared/utils/toast';
 
 const ProgressCardWrapper = styled.div`
   background-color: ${({ theme }) => theme.colors.gray.gray0};
@@ -90,7 +90,7 @@ function ProgressCard({
     if (solvedCheck.length === questions.questions.length) {
       setIsAllSolved(true);
     } else {
-      toast('모든 문제를 체크해야 넘어갈 수 있습니다');
+      showToast('모든 문제를 체크해야 넘어갈 수 있습니다');
     }
   };
   return (

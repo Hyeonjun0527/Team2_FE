@@ -2,10 +2,10 @@ import styled from '@emotion/styled';
 import { ArrowLeft } from 'lucide-react';
 import { ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
 
 import type { QuestionSet } from '@/features/solve/types/question';
 import type { MarkingRequest } from '../../types/MarkingRequest';
+import { showToast } from '@/shared/utils/toast';
 
 const QuestionAreaWrapper = styled.div`
   margin-right: ${({ theme }) => theme.spacing.spacing3};
@@ -143,7 +143,7 @@ function ShortAnswerSolve({
   const markSolved = (optionText: string) => {
     const question = questions.questions.at(currentQuestionIndex - 1);
     if (!question) {
-      toast('문제 id를 찾을 수 없습니다.');
+      showToast('문제 id를 찾을 수 없습니다.');
       return;
     }
 
@@ -173,7 +173,7 @@ function ShortAnswerSolve({
       currentQuestionIndex === questions.questions.length &&
       solvedCheck.length !== questions.questions.length
     ) {
-      toast('모든 문제를 체크해야 넘어갈 수 있습니다');
+      showToast('모든 문제를 체크해야 넘어갈 수 있습니다');
     }
   };
 

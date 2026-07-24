@@ -9,6 +9,7 @@ import * as Sentry from '@sentry/react';
 
 import '@/shared/styles/global.css';
 import App from '@/app/App.tsx';
+import { APP_BASE_PATH } from '@/shared/config/runtimePaths';
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -17,7 +18,7 @@ Sentry.init({
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
-  <BrowserRouter>
+  <BrowserRouter basename={APP_BASE_PATH || '/'}>
     <ChakraProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary>

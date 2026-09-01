@@ -23,6 +23,9 @@ concurrency:
 
 jobs:
   build:
+    # `vars` must be read from the isolated Pull-it Environment, never from a
+    # repository-wide setting shared with another service.
+    environment: pullit-frontend-production
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the deployed revision

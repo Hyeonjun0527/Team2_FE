@@ -11,9 +11,11 @@ import '@/shared/styles/global.css';
 import App from '@/app/App.tsx';
 import { APP_BASE_PATH } from '@/shared/config/runtimePaths';
 
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN,
-});
+const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+
+if (sentryDsn) {
+  Sentry.init({ dsn: sentryDsn });
+}
 
 const queryClient = new QueryClient();
 

@@ -49,6 +49,8 @@ jobs:
           VITE_API_BASE_URL: /pull-it
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
         run: pnpm build
+      - name: Reject retired origins and root-path assets
+        run: ops/production/verify-frontend-bundle.sh dist
       - name: Upload immutable static bundle
         uses: actions/upload-artifact@v4
         with:
@@ -71,6 +73,8 @@ jobs:
         with:
           name: pullit-frontend-${{ github.sha }}
           path: dist
+      - name: Verify the downloaded artifact again
+        run: ops/production/verify-frontend-bundle.sh dist
       - name: Atomically deploy only Pull-it frontend files
         env:
           PULLIT_FRONTEND_REVISION: ${{ github.sha }}

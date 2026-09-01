@@ -15,6 +15,8 @@ if [ ! -f "$bundle_directory/index.html" ]; then
   exit 1
 fi
 
+ops/production/verify-frontend-bundle.sh "$bundle_directory"
+
 frontend_root='/opt/pullit/frontend'
 releases_directory="$frontend_root/releases"
 release_directory="$releases_directory/$revision"

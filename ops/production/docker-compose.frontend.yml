@@ -15,3 +15,13 @@ services:
         read_only: true
     security_opt:
       - no-new-privileges:true
+    networks:
+      - pullit-internal
+
+networks:
+  # Created by the backend compose contract on the dedicated Pull-it host.
+  # Keeping it external makes a frontend-only deploy fail closed when that
+  # contract has not been established yet.
+  pullit-internal:
+    external: true
+    name: pullit-internal

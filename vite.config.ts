@@ -7,6 +7,37 @@ import svgr from 'vite-plugin-svgr';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const publicBasePath = env.VITE_PUBLIC_BASE_PATH || (mode === 'production' ? '/pull-it/' : '/');
+  const developmentApiOrigin = env.PULLIT_DEV_API_ORIGIN?.trim();
+
+  const developmentApiProxy = developmentApiOrigin
+    ? {
+        '/pull-it/api': {
+          target: developmentApiOrigin,
+          changeOrigin: true,
+          secure: developmentApiOrigin.startsWith('https://'),
+          rewrite: (requestPath: string) => requestPath.replace(/^\/pull-it/, ''),
+          ws: true,
+        },
+        '/pull-it/auth': {
+          target: developmentApiOrigin,
+          changeOrigin: true,
+          secure: developmentApiOrigin.startsWith('https://'),
+          rewrite: (requestPath: string) => requestPath.replace(/^\/pull-it/, ''),
+        },
+        '/pull-it/oauth2': {
+          target: developmentApiOrigin,
+          changeOrigin: true,
+          secure: developmentApiOrigin.startsWith('https://'),
+          rewrite: (requestPath: string) => requestPath.replace(/^\/pull-it/, ''),
+        },
+        '/pull-it/login/oauth2': {
+          target: developmentApiOrigin,
+          changeOrigin: true,
+          secure: developmentApiOrigin.startsWith('https://'),
+          rewrite: (requestPath: string) => requestPath.replace(/^\/pull-it/, ''),
+        },
+      }
+    : undefined;
 
   const config: UserConfig = {
     base: publicBasePath,
@@ -24,14 +55,7 @@ export default defineConfig(({ mode }) => {
         key: path.resolve(__dirname, 'localhost-key.pem'),
         cert: path.resolve(__dirname, 'localhost.pem'),
       },
-      proxy: {
-        '/api/notifications/subscribe': {
-          target: env.VITE_API_BASE_URL,
-          changeOrigin: true,
-          secure: false,
-          ws: true,
-        },
-      },
+      proxy: developmentApiProxy,
     },
   };
 

@@ -84,3 +84,26 @@ if ! docker compose -p pullit-frontend -f "$compose_file" up -d --force-recreate
   restore_previous_release
   exit 1
 fi
+
+asset_path="$(grep -oE '/pull-it/assets/[^\"'\'' ]+\\.(js|css)' "$release_directory/index.html" | head -n 1 || true)"
+if [ -z "$asset_path" ] \
+  || ! docker compose -p pullit-frontend -f "$compose_file" exec -T pullit-frontend \
+    wget --quiet --spider "http://localhost:18081$asset_path"; then
+  echo 'Pull-it frontend asset probe failed; restoring the previous release.' >&2
+  restore_previous_release
+  exit 1
+fi
+
+# 현재 릴리스와 즉시 이전 릴리스를 포함해 최근 3개만 남긴다. 이름은 검증된
+# 전체 Git SHA라서 날짜 문자열이나 경로를 지우지 않는다.
+mapfile -t stale_releases < <(
+  find "$releases_directory" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %f\n' \
+    | sort -rn \
+    | tail -n +4 \
+    | awk '{print $2}'
+)
+for stale_release in "${stale_releases[@]}"; do
+  if [[ "$stale_release" =~ ^[0-9a-f]{40}$ ]]; then
+    rm -rf -- "$releases_directory/$stale_release"
+  fi
+done

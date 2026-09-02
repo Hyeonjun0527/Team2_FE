@@ -1,5 +1,6 @@
 name: Deploy Pull-it Frontend to Yeon Pi
 on:
+  workflow_dispatch:
   push:
     branches: [develop]
     paths:

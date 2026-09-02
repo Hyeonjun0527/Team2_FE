@@ -8,33 +8,45 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const publicBasePath = env.VITE_PUBLIC_BASE_PATH || (mode === 'production' ? '/pull-it/' : '/');
   const developmentApiOrigin = env.PULLIT_DEV_API_ORIGIN?.trim();
+  const publicBasePrefix = publicBasePath.replace(/\/$/, '');
+
+  const isLocalDevelopmentOrigin = (origin: string) => {
+    const hostname = new URL(origin).hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+  };
+
+  const proxyPath = (suffix: string) => `${publicBasePrefix}${suffix}`;
+  const stripPublicBasePrefix = (requestPath: string) =>
+    requestPath.startsWith(publicBasePrefix)
+      ? requestPath.slice(publicBasePrefix.length) || '/'
+      : requestPath;
 
   const developmentApiProxy = developmentApiOrigin
     ? {
-        '/pull-it/api': {
+        [proxyPath('/api')]: {
           target: developmentApiOrigin,
           changeOrigin: true,
-          secure: developmentApiOrigin.startsWith('https://'),
-          rewrite: (requestPath: string) => requestPath.replace(/^\/pull-it/, ''),
+          secure: !isLocalDevelopmentOrigin(developmentApiOrigin),
+          rewrite: stripPublicBasePrefix,
           ws: true,
         },
-        '/pull-it/auth': {
+        [proxyPath('/auth')]: {
           target: developmentApiOrigin,
           changeOrigin: true,
-          secure: developmentApiOrigin.startsWith('https://'),
-          rewrite: (requestPath: string) => requestPath.replace(/^\/pull-it/, ''),
+          secure: !isLocalDevelopmentOrigin(developmentApiOrigin),
+          rewrite: stripPublicBasePrefix,
         },
-        '/pull-it/oauth2': {
+        [proxyPath('/oauth2')]: {
           target: developmentApiOrigin,
           changeOrigin: true,
-          secure: developmentApiOrigin.startsWith('https://'),
-          rewrite: (requestPath: string) => requestPath.replace(/^\/pull-it/, ''),
+          secure: !isLocalDevelopmentOrigin(developmentApiOrigin),
+          rewrite: stripPublicBasePrefix,
         },
-        '/pull-it/login/oauth2': {
+        [proxyPath('/login/oauth2')]: {
           target: developmentApiOrigin,
           changeOrigin: true,
-          secure: developmentApiOrigin.startsWith('https://'),
-          rewrite: (requestPath: string) => requestPath.replace(/^\/pull-it/, ''),
+          secure: !isLocalDevelopmentOrigin(developmentApiOrigin),
+          rewrite: stripPublicBasePrefix,
         },
       }
     : undefined;

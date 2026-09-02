@@ -14,6 +14,8 @@ on:
       - 'tsconfig*.json'
       - '.github/actions/**'
       - '.github/workflows/ci.yml'
+      - '.github/workflows/deploy-production.yml'
+      - 'ops/production/**'
   push:
     branches: [develop]
     paths:
@@ -27,6 +29,8 @@ on:
       - 'tsconfig*.json'
       - '.github/actions/**'
       - '.github/workflows/ci.yml'
+      - '.github/workflows/deploy-production.yml'
+      - 'ops/production/**'
 
 permissions:
   contents: read

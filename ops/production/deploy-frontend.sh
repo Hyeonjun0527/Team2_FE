@@ -4,6 +4,8 @@ set -euo pipefail
 
 bundle_directory="${1:?The verified static bundle directory is required.}"
 revision="${2:?The immutable Git revision is required.}"
+compose_file="${PULLIT_FRONTEND_COMPOSE_FILE:-/opt/pullit/frontend/docker-compose.frontend.yml}"
+verify_script="${PULLIT_FRONTEND_VERIFY_SCRIPT:-/opt/pullit/frontend/verify-frontend-bundle.sh}"
 
 if ! [[ "$revision" =~ ^[0-9a-f]{40}$ ]]; then
   echo 'Pull-it frontend revision must be a full lowercase Git SHA.' >&2
@@ -15,7 +17,19 @@ if [ ! -f "$bundle_directory/index.html" ]; then
   exit 1
 fi
 
-ops/production/verify-frontend-bundle.sh "$bundle_directory"
+if [ -x "$verify_script" ]; then
+  "$verify_script" "$bundle_directory"
+else
+  # Older, deliberately restricted dispatchers do not install the helper.
+  # Keep the deployment safe without requiring broader root permissions.
+  grep --fixed-strings --quiet '/pull-it/assets/' "$bundle_directory/index.html"
+  if grep -R -E --include='*.html' --include='*.js' --include='*.css' \
+    "https?://(qa\\.)?api\\.pull\\.it\\.kr|https?://pull\\.it\\.kr|[\"']/(assets|src)/" \
+    "$bundle_directory" >/dev/null; then
+    echo 'Pull-it frontend bundle contains a retired origin or root asset path.' >&2
+    exit 1
+  fi
+fi
 
 frontend_root='/opt/pullit/frontend'
 releases_directory="$frontend_root/releases"
@@ -45,6 +59,9 @@ next_link="$frontend_root/.current-next"
 ln -s "$release_directory" "$next_link"
 mv -Tf "$next_link" "$frontend_root/current"
 
-docker compose -p pullit-frontend -f ops/production/docker-compose.frontend.yml config --quiet
-docker compose -p pullit-frontend -f ops/production/docker-compose.frontend.yml up -d
-curl --fail --silent --show-error --retry 5 --retry-delay 2 http://127.0.0.1:18081/pull-it/ >/dev/null
+docker network inspect yeon-edge >/dev/null
+docker network inspect pullit-portfolio-internal >/dev/null
+docker compose -p pullit-frontend -f "$compose_file" config --quiet
+docker compose -p pullit-frontend -f "$compose_file" up -d
+docker compose -p pullit-frontend -f "$compose_file" exec -T pullit-frontend \
+  wget --quiet --spider http://localhost:18081/pull-it/

@@ -6,8 +6,7 @@ import svgr from 'vite-plugin-svgr';
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const publicBasePath =
-    env.VITE_PUBLIC_BASE_PATH || (mode === 'production' ? '/pull-it/' : '/');
+  const publicBasePath = env.VITE_PUBLIC_BASE_PATH || (mode === 'production' ? '/pull-it/' : '/');
 
   const config: UserConfig = {
     base: publicBasePath,

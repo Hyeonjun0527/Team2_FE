@@ -2,8 +2,6 @@ services:
   pullit-frontend:
     image: nginx:1.27-alpine
     restart: unless-stopped
-    ports:
-      - '127.0.0.1:18081:18081'
     volumes:
       - type: bind
         source: /opt/pullit/frontend/current
@@ -16,12 +14,13 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - pullit-internal
+      pullit-internal:
+      yeon-edge:
+        aliases: [pullit-frontend]
 
 networks:
-  # Created by the backend compose contract on the dedicated Pull-it host.
-  # Keeping it external makes a frontend-only deploy fail closed when that
-  # contract has not been established yet.
   pullit-internal:
     external: true
-    name: pullit-internal
+    name: pullit-portfolio-internal
+  yeon-edge:
+    external: true

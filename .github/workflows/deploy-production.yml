@@ -1,81 +1,76 @@
-name: Deploy Pull-it frontend
-
+name: Deploy Pull-it Frontend to Yeon Pi
 on:
   push:
     branches: [develop]
     paths:
-      - 'src/**'
-      - 'public/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'vite.config.ts'
-      - '.env.example'
-      - 'tsconfig*.json'
-      - 'ops/production/**'
-      - '.github/workflows/deploy-production.yml'
-
-permissions:
-  contents: read
-
-concurrency:
-  group: pullit-frontend-production
-  cancel-in-progress: false
-
+      [
+        src/**,
+        public/**,
+        package.json,
+        pnpm-lock.yaml,
+        vite.config.ts,
+        tsconfig*.json,
+        ops/production/**,
+        .github/workflows/deploy-production.yml,
+      ]
+permissions: { contents: read }
+concurrency: { group: pullit-frontend-production, cancel-in-progress: false }
 jobs:
   build:
-    # `vars` must be read from the isolated Pull-it Environment, never from a
-    # repository-wide setting shared with another service.
-    environment: pullit-frontend-production
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the deployed revision
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Build the public subpath bundle
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
         env:
           VITE_PUBLIC_BASE_PATH: /pull-it/
           VITE_API_BASE_URL: /pull-it
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
-        run: pnpm build
-      - name: Reject retired origins and root-path assets
-        run: ops/production/verify-frontend-bundle.sh dist
-      - name: Upload immutable static bundle
-        uses: actions/upload-artifact@v4
+      - run: ops/production/verify-frontend-bundle.sh dist
+      - uses: actions/upload-artifact@v4
         with:
           name: pullit-frontend-${{ github.sha }}
           path: dist
           if-no-files-found: error
-          retention-days: 7
-
+          retention-days: 3
   deploy:
     needs: build
+    runs-on: ubuntu-latest
     environment: pullit-frontend-production
-    runs-on: [self-hosted, Linux, X64, pullit-frontend-production]
     steps:
-      - name: Checkout deployment contract
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-      - name: Download the verified static bundle
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
         with:
           name: pullit-frontend-${{ github.sha }}
           path: dist
-      - name: Verify the downloaded artifact again
-        run: ops/production/verify-frontend-bundle.sh dist
-      - name: Atomically deploy only Pull-it frontend files
+      - run: ops/production/verify-frontend-bundle.sh dist
+      - name: Configure dedicated Pi deployment identity
         env:
-          PULLIT_FRONTEND_REVISION: ${{ github.sha }}
-        run: ops/production/deploy-frontend.sh dist "$PULLIT_FRONTEND_REVISION"
+          DEPLOY_KEY: ${{ secrets.PULLIT_DEPLOY_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ vars.PULLIT_DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_KEY" && test -n "$KNOWN_HOSTS"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Upload and activate only this frontend revision
+        env:
+          DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_HOST"
+          staging="$(mktemp -d)"; trap 'rm -rf "$staging"' EXIT
+          install -m 640 ops/production/docker-compose.frontend.yml "$staging/docker-compose.frontend.yml"
+          install -m 640 ops/production/nginx.conf "$staging/nginx.conf"
+          install -m 750 ops/production/deploy-frontend.sh "$staging/deploy-frontend.sh"
+          install -m 750 ops/production/verify-frontend-bundle.sh "$staging/verify-frontend-bundle.sh"
+          cp -a dist "$staging/dist"
+          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes "pullit-deploy@$DEPLOY_HOST" "mkdir -p /opt/pullit/incoming/frontend/${{ github.sha }}"
+          scp -i ~/.ssh/id_ed25519 -r "$staging/." "pullit-deploy@$DEPLOY_HOST:/opt/pullit/incoming/frontend/${{ github.sha }}/"
+          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes "pullit-deploy@$DEPLOY_HOST" "sudo /usr/local/sbin/pullit-deploy frontend ${{ github.sha }}"

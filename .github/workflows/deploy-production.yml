@@ -49,23 +49,39 @@ jobs:
           name: pullit-frontend-${{ github.sha }}
           path: dist
       - run: ops/production/verify-frontend-bundle.sh dist
+      - name: Install pinned Cloudflare Access client
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output /tmp/cloudflared \
+            https://github.com/cloudflare/cloudflared/releases/download/2026.5.0/cloudflared-linux-amd64
+          echo '0095e46fdc88855d801c4d304cb1f5dd4bd656116c47ab94c2ad0ae7cda1c7ec  /tmp/cloudflared' | sha256sum --check -
+          install -D -m 0755 /tmp/cloudflared "$HOME/.local/bin/cloudflared"
+          printf '%s\n' "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Configure dedicated Pi deployment identity
         env:
           DEPLOY_KEY: ${{ secrets.PULLIT_DEPLOY_SSH_PRIVATE_KEY }}
           KNOWN_HOSTS: ${{ vars.PULLIT_DEPLOY_SSH_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
         run: |
           set -euo pipefail
-          test -n "$DEPLOY_KEY" && test -n "$KNOWN_HOSTS"
+          test -n "$DEPLOY_KEY" && test -n "$KNOWN_HOSTS" && test -n "$DEPLOY_HOST"
           install -d -m 700 ~/.ssh
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host %s\n' "$DEPLOY_HOST" > ~/.ssh/config
+          cat >> ~/.ssh/config <<'EOF'
+            ProxyCommand cloudflared access ssh --hostname %h --service-token-id "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" --service-token-secret "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET"
+          EOF
+          chmod 600 ~/.ssh/config
       - name: Upload and activate only this frontend revision
         env:
           DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET }}
         run: |
           set -euo pipefail
-          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_HOST" && test -n "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" && test -n "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET"
           staging="$(mktemp -d)"; trap 'rm -rf "$staging"' EXIT
           install -m 640 ops/production/docker-compose.frontend.yml "$staging/docker-compose.frontend.yml"
           install -m 640 ops/production/nginx.conf "$staging/nginx.conf"

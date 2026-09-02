@@ -32,6 +32,8 @@ jobs:
     environment: pullit-frontend-production
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v5
+        with: { persist-credentials: false }
       - uses: ./.github/actions/install-cloudflared
       - name: Verify Cloudflare Access and the restricted Pi command path
         env:

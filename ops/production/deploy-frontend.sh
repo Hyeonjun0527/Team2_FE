@@ -85,7 +85,7 @@ if ! docker compose -p pullit-frontend -f "$compose_file" up -d --force-recreate
   exit 1
 fi
 
-asset_path="$(grep -oE '/pull-it/assets/[^\"'\'' ]+\\.(js|css)' "$release_directory/index.html" | head -n 1 || true)"
+asset_path="$(grep -oE '/pull-it/assets/[^\"'\'' ]+\.(js|css)' "$release_directory/index.html" | head -n 1 || true)"
 if [ -z "$asset_path" ] \
   || ! docker compose -p pullit-frontend -f "$compose_file" exec -T pullit-frontend \
     wget --quiet --spider "http://localhost:18081$asset_path"; then

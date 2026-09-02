@@ -1,0 +1,81 @@
+name: Deploy Pull-it frontend
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      - '.env.example'
+      - 'tsconfig*.json'
+      - 'ops/production/**'
+      - '.github/workflows/deploy-production.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pullit-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # `vars` must be read from the isolated Pull-it Environment, never from a
+    # repository-wide setting shared with another service.
+    environment: pullit-frontend-production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the deployed revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build the public subpath bundle
+        env:
+          VITE_PUBLIC_BASE_PATH: /pull-it/
+          VITE_API_BASE_URL: /pull-it
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+        run: pnpm build
+      - name: Reject retired origins and root-path assets
+        run: ops/production/verify-frontend-bundle.sh dist
+      - name: Upload immutable static bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: pullit-frontend-${{ github.sha }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    needs: build
+    environment: pullit-frontend-production
+    runs-on: [self-hosted, Linux, X64, pullit-frontend-production]
+    steps:
+      - name: Checkout deployment contract
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Download the verified static bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: pullit-frontend-${{ github.sha }}
+          path: dist
+      - name: Verify the downloaded artifact again
+        run: ops/production/verify-frontend-bundle.sh dist
+      - name: Atomically deploy only Pull-it frontend files
+        env:
+          PULLIT_FRONTEND_REVISION: ${{ github.sha }}
+        run: ops/production/deploy-frontend.sh dist "$PULLIT_FRONTEND_REVISION"

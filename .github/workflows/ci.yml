@@ -1,7 +1,33 @@
-name: Continuous Integration
+name: Pull-it FE check
 
 on:
   pull_request:
+    branches: [develop]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      - 'vercel.json'
+      - '.env.example'
+      - 'tsconfig*.json'
+      - '.github/workflows/ci.yml'
+  push:
+    branches: [develop]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      - 'vercel.json'
+      - '.env.example'
+      - 'tsconfig*.json'
+      - '.github/workflows/ci.yml'
+
+permissions:
+  contents: read
 
 jobs:
   CI:
@@ -33,4 +59,9 @@ jobs:
 
       - name: Run TSC check
         run: pnpm tsc-check
-# package.json에 prettier, eslint, tsc스크립트가 명시되어있음
+
+      - name: Build with the public portfolio base path
+        env:
+          VITE_PUBLIC_BASE_PATH: /pull-it/
+          VITE_API_BASE_URL: /pull-it
+        run: pnpm build

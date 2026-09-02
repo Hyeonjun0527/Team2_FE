@@ -55,13 +55,32 @@ if [ ! -d "$release_directory" ]; then
   staging_directory=''
 fi
 
-next_link="$frontend_root/.current-next"
-ln -s "$release_directory" "$next_link"
-mv -Tf "$next_link" "$frontend_root/current"
+previous_release=''
+if [ -L "$frontend_root/current" ]; then
+  previous_release="$(readlink -f "$frontend_root/current")"
+fi
+
+restore_previous_release() {
+  if [ -n "$previous_release" ]; then
+    ln -sfn "$previous_release" "$frontend_root/.current-rollback"
+    mv -Tf "$frontend_root/.current-rollback" "$frontend_root/current"
+    docker compose -p pullit-frontend -f "$compose_file" up -d --force-recreate pullit-frontend
+  else
+    rm -f "$frontend_root/current"
+  fi
+}
 
 docker network inspect yeon-edge >/dev/null
 docker network inspect pullit-portfolio-internal >/dev/null
 docker compose -p pullit-frontend -f "$compose_file" config --quiet
-docker compose -p pullit-frontend -f "$compose_file" up -d
-docker compose -p pullit-frontend -f "$compose_file" exec -T pullit-frontend \
-  wget --quiet --spider http://localhost:18081/pull-it/
+
+ln -sfn "$release_directory" "$frontend_root/.current-next"
+mv -Tf "$frontend_root/.current-next" "$frontend_root/current"
+
+if ! docker compose -p pullit-frontend -f "$compose_file" up -d --force-recreate pullit-frontend \
+  || ! docker compose -p pullit-frontend -f "$compose_file" exec -T pullit-frontend \
+    wget --quiet --spider http://localhost:18081/pull-it/; then
+  echo 'Pull-it frontend health check failed; restoring the previous release.' >&2
+  restore_previous_release
+  exit 1
+fi

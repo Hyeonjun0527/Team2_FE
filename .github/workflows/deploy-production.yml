@@ -2,18 +2,28 @@ name: Deploy Pull-it Frontend to Yeon Pi
 on:
   push:
     branches: [develop]
-    paths: [src/**, public/**, package.json, pnpm-lock.yaml, vite.config.ts, tsconfig*.json, ops/production/**, .github/workflows/deploy-production.yml]
-permissions: {contents: read}
-concurrency: {group: pullit-frontend-production, cancel-in-progress: false}
+    paths:
+      [
+        src/**,
+        public/**,
+        package.json,
+        pnpm-lock.yaml,
+        vite.config.ts,
+        tsconfig*.json,
+        ops/production/**,
+        .github/workflows/deploy-production.yml,
+      ]
+permissions: { contents: read }
+concurrency: { group: pullit-frontend-production, cancel-in-progress: false }
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
-        with: {version: 10}
+        with: { version: 10 }
       - uses: actions/setup-node@v4
-        with: {node-version: 22, cache: pnpm}
+        with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
         env:
